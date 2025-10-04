@@ -10,8 +10,7 @@ import VesselVisualization2D from '@/components/VesselVisualization2D';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { useRef } from 'react';
-import { Document, Paragraph, TextRun, Table, TableRow, TableCell, Packer, WidthType, AlignmentType, HeadingLevel, BorderStyle } from 'docx';
-import { saveAs } from 'file-saver';
+import { Document, Paragraph, TextRun, Table, TableRow, TableCell, Packer, WidthType, AlignmentType, HeadingLevel } from 'docx';
 
 interface WallCalculatorProps {
   diameter: string;
@@ -208,7 +207,12 @@ export default function WallCalculator({
     });
 
     const blob = await Packer.toBlob(doc);
-    saveAs(blob, `Raschet_obechayok_GOST_34233.2_${new Date().getTime()}.docx`);
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Raschet_obechayok_GOST_34233.2_${new Date().getTime()}.docx`;
+    link.click();
+    window.URL.revokeObjectURL(url);
   };
   return (
     <div className="space-y-6 animate-fade-in">
