@@ -7,6 +7,7 @@ import FlangeCalculator from '@/components/calculators/FlangeCalculator';
 import HeadCalculator from '@/components/calculators/HeadCalculator';
 import SupportCalculator from '@/components/calculators/SupportCalculator';
 import FlangeDatabase from '@/components/calculators/FlangeDatabase';
+import PressureCalculator from '@/components/calculators/PressureCalculator';
 import HomePage from '@/components/sections/HomePage';
 import StandardsPage from '@/components/sections/StandardsPage';
 import DocsPage from '@/components/sections/DocsPage';
@@ -47,6 +48,13 @@ export default function Index() {
   const [selectedFlangeDN, setSelectedFlangeDN] = useState('');
   const [selectedFlangePN, setSelectedFlangePN] = useState('1.6');
 
+  const [pressureDiameter, setPressureDiameter] = useState('');
+  const [pressureWallThickness, setPressureWallThickness] = useState('');
+  const [pressureTemperature, setPressureTemperature] = useState('20');
+  const [pressureMaterial, setPressureMaterial] = useState('');
+  const [pressureWeldCoeff, setPressureWeldCoeff] = useState('1.0');
+  const [allowablePressure, setAllowablePressure] = useState<number | null>(null);
+
   const calculateThickness = () => {
     const D = parseFloat(diameter);
     const P = parseFloat(pressure);
@@ -59,6 +67,20 @@ export default function Index() {
     const s = (P * D) / (2 * sigma * phi - P);
     
     setResult(Math.ceil(s * 10) / 10);
+  };
+
+  const calculateAllowablePressure = () => {
+    const D = parseFloat(pressureDiameter);
+    const s = parseFloat(pressureWallThickness);
+    const T = parseFloat(pressureTemperature);
+    const phi = parseFloat(pressureWeldCoeff);
+
+    if (!D || !s || !pressureMaterial || !phi || isNaN(T)) return;
+
+    const sigma = getAllowableStress(pressureMaterial, T);
+    const P = (2 * sigma * phi * s) / (D + s);
+    
+    setAllowablePressure(P);
   };
 
   const calculateFlange = () => {
@@ -250,6 +272,23 @@ export default function Index() {
               )}
             </div>
           </div>
+        )}
+
+        {activeTab === 'pressure' && (
+          <PressureCalculator
+            diameter={pressureDiameter}
+            setDiameter={setPressureDiameter}
+            wallThickness={pressureWallThickness}
+            setWallThickness={setPressureWallThickness}
+            temperature={pressureTemperature}
+            setTemperature={setPressureTemperature}
+            material={pressureMaterial}
+            setMaterial={setPressureMaterial}
+            weldCoeff={pressureWeldCoeff}
+            setWeldCoeff={setPressureWeldCoeff}
+            result={allowablePressure}
+            calculatePressure={calculateAllowablePressure}
+          />
         )}
 
         {activeTab === 'flange' && (

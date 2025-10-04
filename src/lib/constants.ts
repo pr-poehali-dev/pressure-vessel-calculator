@@ -77,6 +77,7 @@ export function getAllowableStress(materialName: string, temperature: number): n
 export const standards = [
   { code: 'ГОСТ 14249-89', title: 'Сосуды и аппараты. Нормы и методы расчета на прочность' },
   { code: 'ГОСТ 34233.1-2017', title: 'Сосуды и аппараты. Нормы и методы расчета на прочность. Общие требования' },
+  { code: 'ГОСТ 34233.2-2017', title: 'Сосуды и аппараты. Нормы и методы расчета на прочность. Расчет цилиндрических и конических обечаек' },
 ];
 
 export const standardFlanges = [
@@ -97,6 +98,7 @@ export const standardFlanges = [
 export const navigationTabs = [
   { id: 'home', label: 'Главная', icon: 'Home' },
   { id: 'calculator', label: 'Стенка', icon: 'Calculator' },
+  { id: 'pressure', label: 'Давление', icon: 'Gauge' },
   { id: 'flange', label: 'Фланцы', icon: 'Disc' },
   { id: 'head', label: 'Днища', icon: 'Circle' },
   { id: 'support', label: 'Опоры', icon: 'Columns3' },
