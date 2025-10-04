@@ -169,8 +169,16 @@ export default function WallCalculator({
                         <span className="font-semibold">{diameter} мм</span>
                       </div>
                       <div className="flex justify-between font-mono">
-                        <span className="text-slate-600">Давление:</span>
+                        <span className="text-slate-600">Рабочее давление:</span>
                         <span className="font-semibold">{pressure} МПа</span>
+                      </div>
+                      <div className="flex justify-between font-mono">
+                        <span className="text-slate-600">Расчетное давление:</span>
+                        <span className="font-semibold">{(parseFloat(pressure) * 1.1).toFixed(2)} МПа</span>
+                      </div>
+                      <div className="flex justify-between font-mono">
+                        <span className="text-slate-600">Температура:</span>
+                        <span className="font-semibold">{temperature} °C</span>
                       </div>
                       <div className="flex justify-between font-mono">
                         <span className="text-slate-600">Материал:</span>
