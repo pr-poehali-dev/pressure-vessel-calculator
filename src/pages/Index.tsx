@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import Icon from '@/components/ui/icon';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import VesselVisualization from '@/components/VesselVisualization';
 
 const materials = [
   { name: 'Сталь 20', allowableStress: 142, youngModulus: 200000 },
@@ -254,7 +255,32 @@ export default function Index() {
                     {result !== null && (
                       <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-white animate-scale-in">
                         <CardHeader>
-                          <CardTitle className="text-lg">Результаты расчета</CardTitle>
+                          <CardTitle className="text-lg flex items-center justify-between">
+                            Результаты расчета
+                            <Button
+                              onClick={() => {
+                                const printContent = document.getElementById('report-content');
+                                if (printContent) {
+                                  const printWindow = window.open('', '', 'height=800,width=800');
+                                  if (printWindow) {
+                                    printWindow.document.write('<html><head><title>Отчет расчета</title>');
+                                    printWindow.document.write('<style>body{font-family:Arial,sans-serif;padding:20px;}h1{color:#2563EB;}table{width:100%;border-collapse:collapse;}td{padding:8px;border-bottom:1px solid #ddd;}.label{color:#64748B;}.value{font-weight:bold;}</style>');
+                                    printWindow.document.write('</head><body>');
+                                    printWindow.document.write(printContent.innerHTML);
+                                    printWindow.document.write('</body></html>');
+                                    printWindow.document.close();
+                                    printWindow.print();
+                                  }
+                                }
+                              }}
+                              variant="outline"
+                              size="sm"
+                              className="gap-2"
+                            >
+                              <Icon name="FileDown" size={16} />
+                              PDF
+                            </Button>
+                          </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
                           <div className="p-6 bg-white rounded-lg border-2 border-blue-500">
@@ -295,6 +321,39 @@ export default function Index() {
                               </div>
                             </div>
                           </div>
+
+                          <div id="report-content" className="hidden">
+                            <h1>Отчет расчета сосуда под давлением</h1>
+                            <p><strong>Дата:</strong> {new Date().toLocaleDateString('ru-RU')}</p>
+                            <h2>Исходные данные:</h2>
+                            <table>
+                              <tr><td className="label">Внутренний диаметр:</td><td className="value">{diameter} мм</td></tr>
+                              <tr><td className="label">Рабочее давление:</td><td className="value">{pressure} МПа</td></tr>
+                              <tr><td className="label">Материал:</td><td className="value">{material}</td></tr>
+                              <tr><td className="label">Коэффициент сварки:</td><td className="value">{weldCoeff}</td></tr>
+                            </table>
+                            <h2>Результаты расчета:</h2>
+                            <table>
+                              <tr><td className="label">Расчетная толщина стенки:</td><td className="value">{result.toFixed(1)} мм</td></tr>
+                              <tr><td className="label">Норматив:</td><td className="value">ГОСТ 14249-89</td></tr>
+                            </table>
+                            <p style="margin-top:20px;color:#64748B;font-size:12px;">Расчеты носят справочный характер</p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {result !== null && diameter && pressure && (
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-sm">Визуализация сосуда</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <VesselVisualization
+                            diameter={parseFloat(diameter)}
+                            thickness={result}
+                            pressure={parseFloat(pressure)}
+                          />
                         </CardContent>
                       </Card>
                     )}
