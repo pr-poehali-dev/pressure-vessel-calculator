@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Icon from '@/components/ui/icon';
 import { Separator } from '@/components/ui/separator';
-import { materials } from '@/lib/constants';
+import { materials, getAllowableStress } from '@/lib/constants';
 
 interface WallCalculatorProps {
   diameter: string;
@@ -214,7 +214,7 @@ export default function WallCalculator({
                 </Card>
               )}
 
-              {material && (
+              {material && temperature && (
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-sm">Свойства материала</CardTitle>
@@ -222,6 +222,14 @@ export default function WallCalculator({
                   <CardContent className="space-y-2 text-sm font-mono">
                     {materials.find(m => m.name === material) && (
                       <>
+                        <div className="flex justify-between">
+                          <span className="text-slate-600">Допускаемое напряжение:</span>
+                          <span className="font-semibold">{getAllowableStress(material, parseFloat(temperature)).toFixed(1)} МПа</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-600">При температуре:</span>
+                          <span className="font-semibold">{temperature} °C</span>
+                        </div>
                         <div className="flex justify-between">
                           <span className="text-slate-600">Модуль упругости:</span>
                           <span className="font-semibold">{materials.find(m => m.name === material)?.youngModulus.toLocaleString()} МПа</span>
