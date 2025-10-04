@@ -5,7 +5,6 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Icon from '@/components/ui/icon';
 import { Separator } from '@/components/ui/separator';
-import VesselVisualization from '@/components/VesselVisualization';
 import { materials } from '@/lib/constants';
 
 interface WallCalculatorProps {
@@ -215,21 +214,6 @@ export default function WallCalculator({
                 </Card>
               )}
 
-              {result !== null && diameter && pressure && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-sm">Визуализация сосуда</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <VesselVisualization
-                      diameter={parseFloat(diameter)}
-                      thickness={result}
-                      pressure={parseFloat(pressure)}
-                    />
-                  </CardContent>
-                </Card>
-              )}
-
               {material && (
                 <Card>
                   <CardHeader>
@@ -239,12 +223,8 @@ export default function WallCalculator({
                     {materials.find(m => m.name === material) && (
                       <>
                         <div className="flex justify-between">
-                          <span className="text-slate-600">Допуск. напряжение:</span>
-                          <span className="font-semibold">{materials.find(m => m.name === material)?.allowableStress} МПа</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-slate-600">Модуль Юнга:</span>
-                          <span className="font-semibold">{materials.find(m => m.name === material)?.youngModulus} МПа</span>
+                          <span className="text-slate-600">Модуль упругости:</span>
+                          <span className="font-semibold">{materials.find(m => m.name === material)?.youngModulus.toLocaleString()} МПа</span>
                         </div>
                       </>
                     )}
