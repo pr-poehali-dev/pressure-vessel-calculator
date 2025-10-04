@@ -10,6 +10,8 @@ import VesselVisualization2D from '@/components/VesselVisualization2D';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { useRef } from 'react';
+import { Document, Paragraph, TextRun, Table, TableRow, TableCell, Packer, WidthType, AlignmentType, HeadingLevel, BorderStyle } from 'docx';
+import { saveAs } from 'file-saver';
 
 interface WallCalculatorProps {
   diameter: string;
@@ -76,6 +78,137 @@ export default function WallCalculator({
     }
 
     pdf.save(`Raschet_obechayok_GOST_34233.2_${new Date().getTime()}.pdf`);
+  };
+
+  const exportToWord = async () => {
+    if (result === null) return;
+
+    const calcPressure = parseFloat(pressure) * 1.1;
+    const allowableStress = getAllowableStress(material, parseFloat(temperature));
+
+    const doc = new Document({
+      sections: [{
+        properties: {},
+        children: [
+          new Paragraph({
+            text: 'РАСЧЕТНЫЙ ОТЧЕТ',
+            heading: HeadingLevel.HEADING_1,
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 200 }
+          }),
+          new Paragraph({
+            text: 'Расчет цилиндрических обечаек',
+            heading: HeadingLevel.HEADING_2,
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 100 }
+          }),
+          new Paragraph({
+            text: 'По ГОСТ 34233.2-2017, раздел 5',
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 200 }
+          }),
+          new Paragraph({
+            text: `Дата: ${new Date().toLocaleDateString('ru-RU')}`,
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 400 }
+          }),
+          new Paragraph({
+            text: 'ИСХОДНЫЕ ДАННЫЕ',
+            heading: HeadingLevel.HEADING_2,
+            spacing: { before: 200, after: 200 }
+          }),
+          new Table({
+            width: { size: 100, type: WidthType.PERCENTAGE },
+            rows: [
+              new TableRow({
+                children: [
+                  new TableCell({
+                    children: [new Paragraph('Внутренний диаметр (D):')],
+                    width: { size: 60, type: WidthType.PERCENTAGE }
+                  }),
+                  new TableCell({
+                    children: [new Paragraph({ text: `${diameter} мм`, bold: true })],
+                    width: { size: 40, type: WidthType.PERCENTAGE }
+                  })
+                ]
+              }),
+              new TableRow({
+                children: [
+                  new TableCell({ children: [new Paragraph('Расчетное давление (P):')]}),
+                  new TableCell({ children: [new Paragraph({ text: `${pressure} МПа`, bold: true })]})
+                ]
+              }),
+              new TableRow({
+                children: [
+                  new TableCell({ children: [new Paragraph('Температура стенки (T):')]}),
+                  new TableCell({ children: [new Paragraph({ text: `${temperature} °C`, bold: true })]})
+                ]
+              }),
+              new TableRow({
+                children: [
+                  new TableCell({ children: [new Paragraph('Материал:')]}),
+                  new TableCell({ children: [new Paragraph({ text: material, bold: true })]})
+                ]
+              }),
+              new TableRow({
+                children: [
+                  new TableCell({ children: [new Paragraph('Коэффициент прочности сварного шва (φ):')]}),
+                  new TableCell({ children: [new Paragraph({ text: weldCoeff, bold: true })]})
+                ]
+              }),
+              new TableRow({
+                children: [
+                  new TableCell({ children: [new Paragraph('Допускаемое напряжение:')]}),
+                  new TableCell({ children: [new Paragraph({ text: `${allowableStress.toFixed(1)} МПа`, bold: true })]})
+                ]
+              })
+            ]
+          }),
+          new Paragraph({
+            text: 'РЕЗУЛЬТАТЫ РАСЧЕТА',
+            heading: HeadingLevel.HEADING_2,
+            spacing: { before: 400, after: 200 }
+          }),
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: 'Расчетная толщина стенки: ',
+                size: 28
+              }),
+              new TextRun({
+                text: `${result.toFixed(1)} мм`,
+                bold: true,
+                size: 32,
+                color: '2563EB'
+              })
+            ],
+            spacing: { after: 200 }
+          }),
+          new Paragraph({
+            text: `Норматив: ГОСТ 34233.2-2017, раздел 5`,
+            spacing: { after: 400 }
+          }),
+          new Paragraph({
+            text: 'РЕКОМЕНДАЦИЯ',
+            heading: HeadingLevel.HEADING_3,
+            spacing: { before: 200, after: 100 }
+          }),
+          new Paragraph({
+            text: 'Добавьте припуск на коррозию (обычно 1-3 мм) и округлите до стандартной толщины листа',
+            spacing: { after: 400 }
+          }),
+          new Paragraph({
+            text: 'Расчеты носят справочный характер',
+            alignment: AlignmentType.CENTER,
+            italics: true,
+            spacing: { before: 400 }
+          })
+        ]
+      }]
+    });
+
+    const blob = await Packer.toBlob(doc);
+    saveAs(blob, `Raschet_obechayok_GOST_34233.2_${new Date().getTime()}.docx`);
   };
   return (
     <div className="space-y-6 animate-fade-in">
@@ -163,10 +296,16 @@ export default function WallCalculator({
               </Button>
               
               {result !== null && (
-                <Button onClick={exportToPDF} variant="outline" size="lg" className="w-full">
-                  <Icon name="FileDown" size={18} className="mr-2" />
-                  Экспорт в PDF
-                </Button>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button onClick={exportToPDF} variant="outline" size="lg" className="w-full">
+                    <Icon name="FileDown" size={18} className="mr-2" />
+                    PDF
+                  </Button>
+                  <Button onClick={exportToWord} variant="outline" size="lg" className="w-full">
+                    <Icon name="FileText" size={18} className="mr-2" />
+                    Word
+                  </Button>
+                </div>
               )}
             </div>
 
