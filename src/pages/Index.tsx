@@ -10,6 +10,8 @@ import FlangeDatabase from '@/components/calculators/FlangeDatabase';
 import HomePage from '@/components/sections/HomePage';
 import StandardsPage from '@/components/sections/StandardsPage';
 import DocsPage from '@/components/sections/DocsPage';
+import VesselVisualization from '@/components/VesselVisualization';
+import PDFExport from '@/components/PDFExport';
 
 export default function Index() {
   const [activeTab, setActiveTab] = useState('home');
@@ -205,20 +207,49 @@ export default function Index() {
         {activeTab === 'home' && <HomePage />}
         
         {activeTab === 'calculator' && (
-          <WallCalculator
-            diameter={diameter}
-            setDiameter={setDiameter}
-            pressure={pressure}
-            setPressure={setPressure}
-            temperature={temperature}
-            setTemperature={setTemperature}
-            material={material}
-            setMaterial={setMaterial}
-            weldCoeff={weldCoeff}
-            setWeldCoeff={setWeldCoeff}
-            result={result}
-            calculateThickness={calculateThickness}
-          />
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <WallCalculator
+                diameter={diameter}
+                setDiameter={setDiameter}
+                pressure={pressure}
+                setPressure={setPressure}
+                temperature={temperature}
+                setTemperature={setTemperature}
+                material={material}
+                setMaterial={setMaterial}
+                weldCoeff={weldCoeff}
+                setWeldCoeff={setWeldCoeff}
+                result={result}
+                calculateThickness={calculateThickness}
+              />
+              {result && diameter && (
+                <div className="space-y-4">
+                  <div data-pdf-visual>
+                    <VesselVisualization
+                      diameter={parseFloat(diameter)}
+                      wallThickness={result}
+                      headType="elliptical"
+                      length={2000}
+                    />
+                  </div>
+                  <PDFExport
+                    diameter={diameter}
+                    pressure={pressure}
+                    temperature={temperature}
+                    material={material}
+                    wallThickness={result}
+                    headType={headType}
+                    headDiameter={headDiameter}
+                    headPressure={headPressure}
+                    headTemperature={headTemperature}
+                    headMaterial={headMaterial}
+                    headThickness={headResult}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
         )}
 
         {activeTab === 'flange' && (
@@ -237,20 +268,49 @@ export default function Index() {
         )}
 
         {activeTab === 'head' && (
-          <HeadCalculator
-            headDiameter={headDiameter}
-            setHeadDiameter={setHeadDiameter}
-            headPressure={headPressure}
-            setHeadPressure={setHeadPressure}
-            headTemperature={headTemperature}
-            setHeadTemperature={setHeadTemperature}
-            headMaterial={headMaterial}
-            setHeadMaterial={setHeadMaterial}
-            headType={headType}
-            setHeadType={setHeadType}
-            headResult={headResult}
-            calculateHead={calculateHead}
-          />
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <HeadCalculator
+                headDiameter={headDiameter}
+                setHeadDiameter={setHeadDiameter}
+                headPressure={headPressure}
+                setHeadPressure={setHeadPressure}
+                headTemperature={headTemperature}
+                setHeadTemperature={setHeadTemperature}
+                headMaterial={headMaterial}
+                setHeadMaterial={setHeadMaterial}
+                headType={headType}
+                setHeadType={setHeadType}
+                headResult={headResult}
+                calculateHead={calculateHead}
+              />
+              {headResult && headDiameter && (
+                <div className="space-y-4">
+                  <div data-pdf-visual>
+                    <VesselVisualization
+                      diameter={parseFloat(headDiameter)}
+                      wallThickness={headResult}
+                      headType={headType}
+                      length={2000}
+                    />
+                  </div>
+                  <PDFExport
+                    diameter={diameter}
+                    pressure={pressure}
+                    temperature={temperature}
+                    material={material}
+                    wallThickness={result}
+                    headType={headType}
+                    headDiameter={headDiameter}
+                    headPressure={headPressure}
+                    headTemperature={headTemperature}
+                    headMaterial={headMaterial}
+                    headThickness={headResult}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
         )}
 
         {activeTab === 'support' && (
