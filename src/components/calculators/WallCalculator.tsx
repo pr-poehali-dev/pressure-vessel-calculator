@@ -75,7 +75,7 @@ export default function WallCalculator({
       heightLeft -= pdfHeight;
     }
 
-    pdf.save(`Raschet_tolshiny_stenki_${new Date().getTime()}.pdf`);
+    pdf.save(`Raschet_obechayok_GOST_34233.2_${new Date().getTime()}.pdf`);
   };
   return (
     <div className="space-y-6 animate-fade-in">
@@ -83,9 +83,9 @@ export default function WallCalculator({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Icon name="Calculator" size={24} className="text-blue-600" />
-            Расчет толщины стенки цилиндрического сосуда
+            Расчет цилиндрических обечаек
           </CardTitle>
-          <CardDescription>По ГОСТ 14249-89</CardDescription>
+          <CardDescription>По ГОСТ 34233.2-2017, раздел 5</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="grid md:grid-cols-2 gap-6">
@@ -237,7 +237,7 @@ export default function WallCalculator({
                       <h2>Результаты расчета:</h2>
                       <table>
                         <tr><td className="label">Расчетная толщина стенки:</td><td className="value">{result.toFixed(1)} мм</td></tr>
-                        <tr><td className="label">Норматив:</td><td className="value">ГОСТ 14249-89</td></tr>
+                        <tr><td className="label">Норматив:</td><td className="value">ГОСТ 34233.2-2017</td></tr>
                       </table>
                       <p style={{marginTop: '20px', color: '#64748B', fontSize: '12px'}}>Расчеты носят справочный характер</p>
                     </div>
@@ -297,8 +297,8 @@ export default function WallCalculator({
         <div id="pdf-report-content" className="fixed -left-[9999px] top-0 w-[794px] bg-white p-10">
           <div className="text-center mb-8">
             <h1 className="text-2xl font-bold mb-2">Расчетный отчет</h1>
-            <h2 className="text-lg mb-1">Толщина стенки цилиндрического сосуда</h2>
-            <p className="text-sm text-gray-600">По ГОСТ 14249-89</p>
+            <h2 className="text-lg mb-1">Расчет цилиндрических обечаек</h2>
+            <p className="text-sm text-gray-600">По ГОСТ 34233.2-2017, раздел 5</p>
             <p className="text-sm text-gray-500 mt-2">Дата: {new Date().toLocaleDateString('ru-RU')}</p>
           </div>
 
@@ -321,7 +321,7 @@ export default function WallCalculator({
             <div className="bg-blue-50 border-2 border-blue-500 rounded-lg p-4 text-center">
               <p className="text-sm text-gray-600 mb-1">Расчетная толщина стенки</p>
               <p className="text-3xl font-bold text-blue-600">{result.toFixed(1)} <span className="text-xl text-gray-600">мм</span></p>
-              <p className="text-xs text-gray-500 mt-2">Норматив: ГОСТ 14249-89</p>
+              <p className="text-xs text-gray-500 mt-2">Норматив: ГОСТ 34233.2-2017, раздел 5</p>
             </div>
           </div>
 
