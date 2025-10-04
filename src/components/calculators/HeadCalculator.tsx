@@ -12,6 +12,8 @@ interface HeadCalculatorProps {
   setHeadDiameter: (val: string) => void;
   headPressure: string;
   setHeadPressure: (val: string) => void;
+  headTemperature: string;
+  setHeadTemperature: (val: string) => void;
   headMaterial: string;
   setHeadMaterial: (val: string) => void;
   headType: string;
@@ -25,6 +27,8 @@ export default function HeadCalculator({
   setHeadDiameter,
   headPressure,
   setHeadPressure,
+  headTemperature,
+  setHeadTemperature,
   headMaterial,
   setHeadMaterial,
   headType,
@@ -80,6 +84,18 @@ export default function HeadCalculator({
                   placeholder="Введите давление"
                   value={headPressure}
                   onChange={(e) => setHeadPressure(e.target.value)}
+                  className="mt-1.5 font-mono"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="headTemperature" className="font-mono text-xs text-slate-600">Расчетная температура, °C</Label>
+                <Input
+                  id="headTemperature"
+                  type="number"
+                  placeholder="Введите температуру"
+                  value={headTemperature}
+                  onChange={(e) => setHeadTemperature(e.target.value)}
                   className="mt-1.5 font-mono"
                 />
               </div>

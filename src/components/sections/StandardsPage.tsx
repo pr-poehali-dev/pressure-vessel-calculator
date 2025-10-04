@@ -35,26 +35,33 @@ export default function StandardsPage() {
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">База данных материалов</CardTitle>
+          <CardDescription>Допускаемые напряжения при различных температурах</CardDescription>
         </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="font-mono">Марка стали</TableHead>
-                <TableHead className="font-mono">Допускаемое напряжение, МПа</TableHead>
-                <TableHead className="font-mono">Модуль упругости, МПа</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {materials.map((mat, i) => (
-                <TableRow key={i}>
-                  <TableCell className="font-semibold font-mono">{mat.name}</TableCell>
-                  <TableCell className="font-mono">{mat.allowableStress}</TableCell>
-                  <TableCell className="font-mono">{mat.youngModulus.toLocaleString()}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+        <CardContent className="space-y-6">
+          {materials.map((mat, i) => (
+            <div key={i} className="border rounded-lg p-4">
+              <h3 className="font-semibold font-mono text-lg mb-3">{mat.name}</h3>
+              <div className="mb-3 text-sm text-slate-600">
+                Модуль упругости: <span className="font-mono font-semibold">{mat.youngModulus.toLocaleString()} МПа</span>
+              </div>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="font-mono">Температура, °C</TableHead>
+                    <TableHead className="font-mono">Допускаемое напряжение, МПа</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {mat.stressByTemp.map((data, j) => (
+                    <TableRow key={j}>
+                      <TableCell className="font-mono">{data.temp}</TableCell>
+                      <TableCell className="font-mono font-semibold">{data.stress}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          ))}
         </CardContent>
       </Card>
     </div>

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import Icon from '@/components/ui/icon';
 import { Separator } from '@/components/ui/separator';
-import { materials, standardFlanges, navigationTabs } from '@/lib/constants';
+import { materials, standardFlanges, navigationTabs, getAllowableStress } from '@/lib/constants';
 import WallCalculator from '@/components/calculators/WallCalculator';
 import FlangeCalculator from '@/components/calculators/FlangeCalculator';
 import HeadCalculator from '@/components/calculators/HeadCalculator';
@@ -16,6 +16,7 @@ export default function Index() {
   
   const [diameter, setDiameter] = useState('');
   const [pressure, setPressure] = useState('');
+  const [temperature, setTemperature] = useState('20');
   const [material, setMaterial] = useState('');
   const [weldCoeff, setWeldCoeff] = useState('1.0');
   const [result, setResult] = useState<number | null>(null);
@@ -28,6 +29,7 @@ export default function Index() {
   
   const [headDiameter, setHeadDiameter] = useState('');
   const [headPressure, setHeadPressure] = useState('');
+  const [headTemperature, setHeadTemperature] = useState('20');
   const [headMaterial, setHeadMaterial] = useState('');
   const [headType, setHeadType] = useState('elliptical');
   const [headResult, setHeadResult] = useState<number | null>(null);
@@ -46,12 +48,12 @@ export default function Index() {
   const calculateThickness = () => {
     const D = parseFloat(diameter);
     const P = parseFloat(pressure);
-    const materialData = materials.find(m => m.name === material);
+    const T = parseFloat(temperature);
     const phi = parseFloat(weldCoeff);
 
-    if (!D || !P || !materialData || !phi) return;
+    if (!D || !P || !material || !phi || isNaN(T)) return;
 
-    const sigma = materialData.allowableStress;
+    const sigma = getAllowableStress(material, T);
     const s = (P * D) / (2 * sigma * phi - P);
     
     setResult(Math.ceil(s * 10) / 10);
@@ -78,11 +80,11 @@ export default function Index() {
   const calculateHead = () => {
     const D = parseFloat(headDiameter);
     const P = parseFloat(headPressure);
-    const materialData = materials.find(m => m.name === headMaterial);
+    const T = parseFloat(headTemperature);
 
-    if (!D || !P || !materialData) return;
+    if (!D || !P || !headMaterial || isNaN(T)) return;
 
-    const sigma = materialData.allowableStress;
+    const sigma = getAllowableStress(headMaterial, T);
     let s = 0;
 
     if (headType === 'elliptical') {
@@ -208,6 +210,8 @@ export default function Index() {
             setDiameter={setDiameter}
             pressure={pressure}
             setPressure={setPressure}
+            temperature={temperature}
+            setTemperature={setTemperature}
             material={material}
             setMaterial={setMaterial}
             weldCoeff={weldCoeff}
@@ -238,6 +242,8 @@ export default function Index() {
             setHeadDiameter={setHeadDiameter}
             headPressure={headPressure}
             setHeadPressure={setHeadPressure}
+            headTemperature={headTemperature}
+            setHeadTemperature={setHeadTemperature}
             headMaterial={headMaterial}
             setHeadMaterial={setHeadMaterial}
             headType={headType}

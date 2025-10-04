@@ -13,6 +13,8 @@ interface WallCalculatorProps {
   setDiameter: (val: string) => void;
   pressure: string;
   setPressure: (val: string) => void;
+  temperature: string;
+  setTemperature: (val: string) => void;
   material: string;
   setMaterial: (val: string) => void;
   weldCoeff: string;
@@ -26,6 +28,8 @@ export default function WallCalculator({
   setDiameter,
   pressure,
   setPressure,
+  temperature,
+  setTemperature,
   material,
   setMaterial,
   weldCoeff,
@@ -67,6 +71,18 @@ export default function WallCalculator({
                   placeholder="Введите давление"
                   value={pressure}
                   onChange={(e) => setPressure(e.target.value)}
+                  className="mt-1.5 font-mono"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="temperature" className="font-mono text-xs text-slate-600">Расчетная температура, °C</Label>
+                <Input
+                  id="temperature"
+                  type="number"
+                  placeholder="Введите температуру"
+                  value={temperature}
+                  onChange={(e) => setTemperature(e.target.value)}
                   className="mt-1.5 font-mono"
                 />
               </div>

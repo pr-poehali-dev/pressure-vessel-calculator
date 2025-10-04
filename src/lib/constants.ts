@@ -1,9 +1,78 @@
 export const materials = [
-  { name: 'Сталь 20', allowableStress: 142, youngModulus: 200000 },
-  { name: '09Г2С', allowableStress: 165, youngModulus: 200000 },
-  { name: '12Х18Н10Т', allowableStress: 133, youngModulus: 200000 },
-  { name: '16ГС', allowableStress: 157, youngModulus: 200000 },
+  { 
+    name: 'Сталь 20', 
+    youngModulus: 200000,
+    stressByTemp: [
+      { temp: 20, stress: 142 },
+      { temp: 100, stress: 137 },
+      { temp: 200, stress: 127 },
+      { temp: 300, stress: 118 },
+      { temp: 400, stress: 108 },
+    ]
+  },
+  { 
+    name: '09Г2С', 
+    youngModulus: 200000,
+    stressByTemp: [
+      { temp: 20, stress: 165 },
+      { temp: 100, stress: 160 },
+      { temp: 200, stress: 150 },
+      { temp: 300, stress: 140 },
+      { temp: 400, stress: 128 },
+    ]
+  },
+  { 
+    name: '12Х18Н10Т', 
+    youngModulus: 200000,
+    stressByTemp: [
+      { temp: 20, stress: 133 },
+      { temp: 100, stress: 127 },
+      { temp: 200, stress: 118 },
+      { temp: 300, stress: 110 },
+      { temp: 400, stress: 103 },
+      { temp: 500, stress: 98 },
+    ]
+  },
+  { 
+    name: '16ГС', 
+    youngModulus: 200000,
+    stressByTemp: [
+      { temp: 20, stress: 157 },
+      { temp: 100, stress: 152 },
+      { temp: 200, stress: 142 },
+      { temp: 300, stress: 133 },
+      { temp: 400, stress: 122 },
+    ]
+  },
 ];
+
+export function getAllowableStress(materialName: string, temperature: number): number {
+  const material = materials.find(m => m.name === materialName);
+  if (!material) return 0;
+
+  const stressData = material.stressByTemp;
+  
+  if (temperature <= stressData[0].temp) {
+    return stressData[0].stress;
+  }
+  
+  if (temperature >= stressData[stressData.length - 1].temp) {
+    return stressData[stressData.length - 1].stress;
+  }
+
+  for (let i = 0; i < stressData.length - 1; i++) {
+    if (temperature >= stressData[i].temp && temperature <= stressData[i + 1].temp) {
+      const t1 = stressData[i].temp;
+      const t2 = stressData[i + 1].temp;
+      const s1 = stressData[i].stress;
+      const s2 = stressData[i + 1].stress;
+      
+      return s1 + ((s2 - s1) * (temperature - t1)) / (t2 - t1);
+    }
+  }
+  
+  return stressData[0].stress;
+}
 
 export const standards = [
   { code: 'ГОСТ 14249-89', title: 'Сосуды и аппараты. Нормы и методы расчета на прочность' },
