@@ -1,6 +1,7 @@
+import { Suspense, useMemo } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, PerspectiveCamera } from '@react-three/drei';
-import { useMemo } from 'react';
+import * as THREE from 'three';
 
 interface VesselVisualizationProps {
   diameter: number;
@@ -33,7 +34,7 @@ function Vessel({ diameter, wallThickness, headType, length = 2000 }: VesselVisu
 
       <mesh position={[0, 0, 0]} rotation={[Math.PI / 2, 0, 0]}>
         <cylinderGeometry args={[radiusInner, radiusInner, vesselLength + 0.01, 32]} />
-        <meshStandardMaterial color="#222" metalness={0.5} roughness={0.4} side={2} />
+        <meshStandardMaterial color="#222" metalness={0.5} roughness={0.4} side={THREE.DoubleSide} />
       </mesh>
 
       {headType === 'hemispherical' ? (
@@ -77,19 +78,25 @@ function Vessel({ diameter, wallThickness, headType, length = 2000 }: VesselVisu
 export default function VesselVisualization(props: VesselVisualizationProps) {
   return (
     <div className="w-full h-[400px] bg-gradient-to-br from-slate-900 to-slate-800 rounded-lg overflow-hidden border border-slate-700">
-      <Canvas>
-        <PerspectiveCamera makeDefault position={[3, 2, 4]} />
-        <OrbitControls enableZoom={true} enablePan={true} />
-        
-        <ambientLight intensity={0.5} />
-        <directionalLight position={[10, 10, 5]} intensity={1} />
-        <directionalLight position={[-10, -10, -5]} intensity={0.3} />
-        <pointLight position={[0, 0, 0]} intensity={0.5} />
-        
-        <Vessel {...props} />
-        
-        <gridHelper args={[10, 20, '#444', '#222']} position={[0, -1.5, 0]} />
-      </Canvas>
+      <Suspense fallback={
+        <div className="flex items-center justify-center h-full text-white">
+          Загрузка 3D модели...
+        </div>
+      }>
+        <Canvas gl={{ antialias: true }} dpr={[1, 2]}>
+          <PerspectiveCamera makeDefault position={[3, 2, 4]} />
+          <OrbitControls enableZoom={true} enablePan={true} />
+          
+          <ambientLight intensity={0.5} />
+          <directionalLight position={[10, 10, 5]} intensity={1} />
+          <directionalLight position={[-10, -10, -5]} intensity={0.3} />
+          <pointLight position={[0, 0, 0]} intensity={0.5} />
+          
+          <Vessel {...props} />
+          
+          <gridHelper args={[10, 20, '#444', '#222']} position={[0, -1.5, 0]} />
+        </Canvas>
+      </Suspense>
     </div>
   );
 }
