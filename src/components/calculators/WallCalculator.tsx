@@ -43,87 +43,39 @@ export default function WallCalculator({
   const reportRef = useRef<HTMLDivElement>(null);
 
   const exportToPDF = async () => {
-    if (!reportRef.current || result === null) return;
+    if (result === null) return;
 
-    const pdf = new jsPDF('p', 'mm', 'a4');
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const pageHeight = pdf.internal.pageSize.getHeight();
-    const margin = 15;
+    const reportElement = document.getElementById('pdf-report-content');
+    if (!reportElement) return;
 
-    pdf.setFont('helvetica', 'bold');
-    pdf.setFontSize(18);
-    pdf.text('Расчетный отчет', pageWidth / 2, margin, { align: 'center' });
-    
-    pdf.setFontSize(12);
-    pdf.text('Толщина стенки цилиндрического сосуда', pageWidth / 2, margin + 8, { align: 'center' });
-    
-    pdf.setFont('helvetica', 'normal');
-    pdf.setFontSize(10);
-    pdf.text('По ГОСТ 14249-89', pageWidth / 2, margin + 14, { align: 'center' });
-
-    let yPos = margin + 25;
-
-    pdf.setFont('helvetica', 'bold');
-    pdf.setFontSize(12);
-    pdf.text('Исходные данные:', margin, yPos);
-    yPos += 8;
-
-    pdf.setFont('helvetica', 'normal');
-    pdf.setFontSize(10);
-    pdf.text(`Внутренний диаметр (D): ${diameter} мм`, margin, yPos);
-    yPos += 6;
-    pdf.text(`Расчетное давление (P): ${pressure} МПа`, margin, yPos);
-    yPos += 6;
-    pdf.text(`Температура стенки (T): ${temperature} °C`, margin, yPos);
-    yPos += 6;
-    pdf.text(`Материал: ${material}`, margin, yPos);
-    yPos += 6;
-    pdf.text(`Коэффициент прочности сварного шва (φ): ${weldCoeff}`, margin, yPos);
-    yPos += 6;
-    const stress = getAllowableStress(material, parseFloat(temperature));
-    pdf.text(`Допускаемое напряжение: ${stress.toFixed(1)} МПа`, margin, yPos);
-    yPos += 10;
-
-    pdf.setFont('helvetica', 'bold');
-    pdf.setFontSize(12);
-    pdf.text('Результаты расчета:', margin, yPos);
-    yPos += 8;
-
-    pdf.setFont('helvetica', 'normal');
-    pdf.setFontSize(10);
-    pdf.text(`Расчетная толщина стенки: ${result.toFixed(1)} мм`, margin, yPos);
-    yPos += 6;
-    pdf.text('Норматив: ГОСТ 14249-89', margin, yPos);
-    yPos += 12;
-
-    const canvas = await html2canvas(reportRef.current, {
+    const canvas = await html2canvas(reportElement, {
       scale: 2,
-      backgroundColor: '#ffffff'
+      backgroundColor: '#ffffff',
+      logging: false,
+      useCORS: true
     });
-    
+
     const imgData = canvas.toDataURL('image/png');
-    const imgWidth = pageWidth - 2 * margin;
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = pdf.internal.pageSize.getHeight();
+    const imgWidth = pdfWidth - 20;
     const imgHeight = (canvas.height * imgWidth) / canvas.width;
     
-    if (yPos + imgHeight > pageHeight - margin) {
+    let heightLeft = imgHeight;
+    let position = 10;
+
+    pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+    heightLeft -= pdfHeight;
+
+    while (heightLeft >= 0) {
+      position = heightLeft - imgHeight + 10;
       pdf.addPage();
-      yPos = margin;
+      pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+      heightLeft -= pdfHeight;
     }
 
-    pdf.addImage(imgData, 'PNG', margin, yPos, imgWidth, imgHeight);
-    yPos += imgHeight + 10;
-
-    if (yPos > pageHeight - 20) {
-      pdf.addPage();
-      yPos = margin;
-    }
-
-    pdf.setFontSize(8);
-    pdf.setTextColor(100);
-    pdf.text('Расчеты носят справочный характер', margin, pageHeight - 10);
-    pdf.text(`Дата: ${new Date().toLocaleDateString('ru-RU')}`, pageWidth - margin, pageHeight - 10, { align: 'right' });
-
-    pdf.save(`Расчет_толщины_стенки_${new Date().getTime()}.pdf`);
+    pdf.save(`Raschet_tolshiny_stenki_${new Date().getTime()}.pdf`);
   };
   return (
     <div className="space-y-6 animate-fade-in">
@@ -340,6 +292,54 @@ export default function WallCalculator({
           </div>
         </CardContent>
       </Card>
+
+      {result !== null && (
+        <div id="pdf-report-content" className="fixed -left-[9999px] top-0 w-[794px] bg-white p-10">
+          <div className="text-center mb-8">
+            <h1 className="text-2xl font-bold mb-2">Расчетный отчет</h1>
+            <h2 className="text-lg mb-1">Толщина стенки цилиндрического сосуда</h2>
+            <p className="text-sm text-gray-600">По ГОСТ 14249-89</p>
+            <p className="text-sm text-gray-500 mt-2">Дата: {new Date().toLocaleDateString('ru-RU')}</p>
+          </div>
+
+          <div className="mb-6">
+            <h3 className="text-lg font-bold mb-3 border-b-2 border-gray-300 pb-1">Исходные данные:</h3>
+            <table className="w-full text-sm">
+              <tbody>
+                <tr className="border-b"><td className="py-2 text-gray-600">Внутренний диаметр (D):</td><td className="py-2 font-semibold text-right">{diameter} мм</td></tr>
+                <tr className="border-b"><td className="py-2 text-gray-600">Расчетное давление (P):</td><td className="py-2 font-semibold text-right">{pressure} МПа</td></tr>
+                <tr className="border-b"><td className="py-2 text-gray-600">Температура стенки (T):</td><td className="py-2 font-semibold text-right">{temperature} °C</td></tr>
+                <tr className="border-b"><td className="py-2 text-gray-600">Материал:</td><td className="py-2 font-semibold text-right">{material}</td></tr>
+                <tr className="border-b"><td className="py-2 text-gray-600">Коэффициент прочности сварного шва (φ):</td><td className="py-2 font-semibold text-right">{weldCoeff}</td></tr>
+                <tr className="border-b"><td className="py-2 text-gray-600">Допускаемое напряжение:</td><td className="py-2 font-semibold text-right">{getAllowableStress(material, parseFloat(temperature)).toFixed(1)} МПа</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div className="mb-6">
+            <h3 className="text-lg font-bold mb-3 border-b-2 border-gray-300 pb-1">Результаты расчета:</h3>
+            <div className="bg-blue-50 border-2 border-blue-500 rounded-lg p-4 text-center">
+              <p className="text-sm text-gray-600 mb-1">Расчетная толщина стенки</p>
+              <p className="text-3xl font-bold text-blue-600">{result.toFixed(1)} <span className="text-xl text-gray-600">мм</span></p>
+              <p className="text-xs text-gray-500 mt-2">Норматив: ГОСТ 14249-89</p>
+            </div>
+          </div>
+
+          <div className="mb-6">
+            <h3 className="text-lg font-bold mb-3 border-b-2 border-gray-300 pb-1">Визуализация сосуда:</h3>
+            <VesselVisualization2D
+              diameter={parseFloat(diameter)}
+              thickness={result}
+              pressure={parseFloat(pressure)}
+              length={2000}
+            />
+          </div>
+
+          <div className="text-center text-xs text-gray-500 mt-8 pt-4 border-t">
+            <p>Расчеты носят справочный характер</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
