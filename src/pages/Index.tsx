@@ -11,8 +11,6 @@ import PressureCalculator from '@/components/calculators/PressureCalculator';
 import HomePage from '@/components/sections/HomePage';
 import StandardsPage from '@/components/sections/StandardsPage';
 import DocsPage from '@/components/sections/DocsPage';
-import VesselVisualization from '@/components/VesselVisualization';
-import PDFExport from '@/components/PDFExport';
 
 export default function Index() {
   const [activeTab, setActiveTab] = useState('home');
