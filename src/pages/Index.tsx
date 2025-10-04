@@ -11,9 +11,15 @@ import PressureCalculator from '@/components/calculators/PressureCalculator';
 import HomePage from '@/components/sections/HomePage';
 import StandardsPage from '@/components/sections/StandardsPage';
 import DocsPage from '@/components/sections/DocsPage';
+import InputDataPage from '@/components/sections/InputDataPage';
 
 export default function Index() {
   const [activeTab, setActiveTab] = useState('home');
+  
+  const [vesselType, setVesselType] = useState('vertical');
+  const [vesselLength, setVesselLength] = useState('');
+  const [medium, setMedium] = useState('');
+  const [corrosionAllowance, setCorrosionAllowance] = useState('1.0');
   
   const [diameter, setDiameter] = useState('');
   const [pressure, setPressure] = useState('');
@@ -37,7 +43,6 @@ export default function Index() {
   
   const [supportType, setSupportType] = useState('saddle');
   const [vesselDiameter, setVesselDiameter] = useState('');
-  const [vesselLength, setVesselLength] = useState('');
   const [vesselWeight, setVesselWeight] = useState('');
   const [supportMaterial, setSupportMaterial] = useState('');
   const [supportResult, setSupportResult] = useState<{stress: number; deflection: number; recommendation: string} | null>(null);
@@ -225,6 +230,29 @@ export default function Index() {
 
       <main className="container mx-auto px-4 py-8">
         {activeTab === 'home' && <HomePage />}
+        
+        {activeTab === 'input-data' && (
+          <InputDataPage
+            vesselType={vesselType}
+            setVesselType={setVesselType}
+            diameter={diameter}
+            setDiameter={setDiameter}
+            length={vesselLength}
+            setLength={setVesselLength}
+            pressure={pressure}
+            setPressure={setPressure}
+            temperature={temperature}
+            setTemperature={setTemperature}
+            material={material}
+            setMaterial={setMaterial}
+            weldCoeff={weldCoeff}
+            setWeldCoeff={setWeldCoeff}
+            medium={medium}
+            setMedium={setMedium}
+            corrosionAllowance={corrosionAllowance}
+            setCorrosionAllowance={setCorrosionAllowance}
+          />
+        )}
         
         {activeTab === 'calculator' && (
           <WallCalculator
