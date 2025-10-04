@@ -7,7 +7,7 @@ import HomePage from '@/components/sections/HomePage';
 import StandardsPage from '@/components/sections/StandardsPage';
 import DocsPage from '@/components/sections/DocsPage';
 import InputDataPage from '@/components/sections/InputDataPage';
-import CalculationsPage from '@/components/sections/CalculationsPage';
+import WallCalculator from '@/components/calculators/WallCalculator';
 
 export default function Index() {
   const [activeTab, setActiveTab] = useState('home');
@@ -250,8 +250,8 @@ export default function Index() {
           />
         )}
         
-        {activeTab === 'calculations' && (
-          <CalculationsPage
+        {activeTab === 'calculator' && (
+          <WallCalculator
             diameter={diameter}
             setDiameter={setDiameter}
             pressure={pressure}
@@ -264,52 +264,6 @@ export default function Index() {
             setWeldCoeff={setWeldCoeff}
             result={result}
             calculateThickness={calculateThickness}
-            pressureDiameter={pressureDiameter}
-            setPressureDiameter={setPressureDiameter}
-            pressureWallThickness={pressureWallThickness}
-            setPressureWallThickness={setPressureWallThickness}
-            pressureTemperature={pressureTemperature}
-            setPressureTemperature={setPressureTemperature}
-            pressureMaterial={pressureMaterial}
-            setPressureMaterial={setPressureMaterial}
-            pressureWeldCoeff={pressureWeldCoeff}
-            setPressureWeldCoeff={setPressureWeldCoeff}
-            allowablePressure={allowablePressure}
-            calculateAllowablePressure={calculateAllowablePressure}
-            flangeDiameter={flangeDiameter}
-            setFlangeDiameter={setFlangeDiameter}
-            flangeThickness={flangeThickness}
-            setFlangeThickness={setFlangeThickness}
-            boltDiameter={boltDiameter}
-            setBoltDiameter={setBoltDiameter}
-            numBolts={numBolts}
-            setNumBolts={setNumBolts}
-            flangeResult={flangeResult}
-            calculateFlange={calculateFlange}
-            headDiameter={headDiameter}
-            setHeadDiameter={setHeadDiameter}
-            headPressure={headPressure}
-            setHeadPressure={setHeadPressure}
-            headTemperature={headTemperature}
-            setHeadTemperature={setHeadTemperature}
-            headMaterial={headMaterial}
-            setHeadMaterial={setHeadMaterial}
-            headType={headType}
-            setHeadType={setHeadType}
-            headResult={headResult}
-            calculateHead={calculateHead}
-            supportType={supportType}
-            setSupportType={setSupportType}
-            vesselDiameter={vesselDiameter}
-            setVesselDiameter={setVesselDiameter}
-            vesselLength={vesselLength}
-            setVesselLength={setVesselLength}
-            vesselWeight={vesselWeight}
-            setVesselWeight={setVesselWeight}
-            supportMaterial={supportMaterial}
-            setSupportMaterial={setSupportMaterial}
-            supportResult={supportResult}
-            calculateSupport={calculateSupport}
           />
         )}
 
