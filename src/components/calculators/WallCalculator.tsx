@@ -7,6 +7,9 @@ import Icon from '@/components/ui/icon';
 import { Separator } from '@/components/ui/separator';
 import { materials, getAllowableStress } from '@/lib/constants';
 import VesselVisualization2D from '@/components/VesselVisualization2D';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+import { useRef } from 'react';
 
 interface WallCalculatorProps {
   diameter: string;
@@ -37,6 +40,91 @@ export default function WallCalculator({
   result,
   calculateThickness
 }: WallCalculatorProps) {
+  const reportRef = useRef<HTMLDivElement>(null);
+
+  const exportToPDF = async () => {
+    if (!reportRef.current || result === null) return;
+
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const margin = 15;
+
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(18);
+    pdf.text('Расчетный отчет', pageWidth / 2, margin, { align: 'center' });
+    
+    pdf.setFontSize(12);
+    pdf.text('Толщина стенки цилиндрического сосуда', pageWidth / 2, margin + 8, { align: 'center' });
+    
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(10);
+    pdf.text('По ГОСТ 14249-89', pageWidth / 2, margin + 14, { align: 'center' });
+
+    let yPos = margin + 25;
+
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(12);
+    pdf.text('Исходные данные:', margin, yPos);
+    yPos += 8;
+
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(10);
+    pdf.text(`Внутренний диаметр (D): ${diameter} мм`, margin, yPos);
+    yPos += 6;
+    pdf.text(`Расчетное давление (P): ${pressure} МПа`, margin, yPos);
+    yPos += 6;
+    pdf.text(`Температура стенки (T): ${temperature} °C`, margin, yPos);
+    yPos += 6;
+    pdf.text(`Материал: ${material}`, margin, yPos);
+    yPos += 6;
+    pdf.text(`Коэффициент прочности сварного шва (φ): ${weldCoeff}`, margin, yPos);
+    yPos += 6;
+    const stress = getAllowableStress(material, parseFloat(temperature));
+    pdf.text(`Допускаемое напряжение: ${stress.toFixed(1)} МПа`, margin, yPos);
+    yPos += 10;
+
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(12);
+    pdf.text('Результаты расчета:', margin, yPos);
+    yPos += 8;
+
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(10);
+    pdf.text(`Расчетная толщина стенки: ${result.toFixed(1)} мм`, margin, yPos);
+    yPos += 6;
+    pdf.text('Норматив: ГОСТ 14249-89', margin, yPos);
+    yPos += 12;
+
+    const canvas = await html2canvas(reportRef.current, {
+      scale: 2,
+      backgroundColor: '#ffffff'
+    });
+    
+    const imgData = canvas.toDataURL('image/png');
+    const imgWidth = pageWidth - 2 * margin;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    
+    if (yPos + imgHeight > pageHeight - margin) {
+      pdf.addPage();
+      yPos = margin;
+    }
+
+    pdf.addImage(imgData, 'PNG', margin, yPos, imgWidth, imgHeight);
+    yPos += imgHeight + 10;
+
+    if (yPos > pageHeight - 20) {
+      pdf.addPage();
+      yPos = margin;
+    }
+
+    pdf.setFontSize(8);
+    pdf.setTextColor(100);
+    pdf.text('Расчеты носят справочный характер', margin, pageHeight - 10);
+    pdf.text(`Дата: ${new Date().toLocaleDateString('ru-RU')}`, pageWidth - margin, pageHeight - 10, { align: 'right' });
+
+    pdf.save(`Расчет_толщины_стенки_${new Date().getTime()}.pdf`);
+  };
   return (
     <div className="space-y-6 animate-fade-in">
       <Card>
@@ -117,42 +205,25 @@ export default function WallCalculator({
                 </Select>
               </div>
 
-              <Button onClick={calculateThickness} className="w-full bg-blue-600 hover:bg-blue-700" size="lg">
-                <Icon name="Play" size={18} className="mr-2" />
-                Рассчитать
-              </Button>
+              <div className="flex gap-2">
+                <Button onClick={calculateThickness} className="flex-1 bg-blue-600 hover:bg-blue-700" size="lg">
+                  <Icon name="Play" size={18} className="mr-2" />
+                  Рассчитать
+                </Button>
+                {result !== null && (
+                  <Button onClick={exportToPDF} variant="outline" size="lg" className="flex-1">
+                    <Icon name="FileDown" size={18} className="mr-2" />
+                    Экспорт в PDF
+                  </Button>
+                )}
+              </div>
             </div>
 
             <div className="space-y-4">
               {result !== null && (
                 <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-white animate-scale-in">
                   <CardHeader>
-                    <CardTitle className="text-lg flex items-center justify-between">
-                      Результаты расчета
-                      <Button
-                        onClick={() => {
-                          const printContent = document.getElementById('report-content');
-                          if (printContent) {
-                            const printWindow = window.open('', '', 'height=800,width=800');
-                            if (printWindow) {
-                              printWindow.document.write('<html><head><title>Отчет расчета</title>');
-                              printWindow.document.write('<style>body{font-family:Arial,sans-serif;padding:20px;}h1{color:#2563EB;}table{width:100%;border-collapse:collapse;}td{padding:8px;border-bottom:1px solid #ddd;}.label{color:#64748B;}.value{font-weight:bold;}</style>');
-                              printWindow.document.write('</head><body>');
-                              printWindow.document.write(printContent.innerHTML);
-                              printWindow.document.write('</body></html>');
-                              printWindow.document.close();
-                              printWindow.print();
-                            }
-                          }
-                        }}
-                        variant="outline"
-                        size="sm"
-                        className="gap-2"
-                      >
-                        <Icon name="FileDown" size={16} />
-                        PDF
-                      </Button>
-                    </CardTitle>
+                    <CardTitle className="text-lg">Результаты расчета</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="p-6 bg-white rounded-lg border-2 border-blue-500">
@@ -229,12 +300,14 @@ export default function WallCalculator({
                     <CardTitle className="text-sm">Визуализация сосуда</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <VesselVisualization2D
-                      diameter={parseFloat(diameter)}
-                      thickness={result}
-                      pressure={parseFloat(pressure)}
-                      length={2000}
-                    />
+                    <div ref={reportRef}>
+                      <VesselVisualization2D
+                        diameter={parseFloat(diameter)}
+                        thickness={result}
+                        pressure={parseFloat(pressure)}
+                        length={2000}
+                      />
+                    </div>
                   </CardContent>
                 </Card>
               )}
