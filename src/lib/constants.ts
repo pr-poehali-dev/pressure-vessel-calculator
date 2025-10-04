@@ -119,11 +119,7 @@ export const standardFlanges = [
 export const navigationTabs = [
   { id: 'home', label: 'Главная', icon: 'Home' },
   { id: 'input-data', label: 'Исходные данные', icon: 'ClipboardList' },
-  { id: 'calculator', label: 'Стенка', icon: 'Calculator' },
-  { id: 'pressure', label: 'Давление', icon: 'Gauge' },
-  { id: 'flange', label: 'Фланцы', icon: 'Disc' },
-  { id: 'head', label: 'Днища', icon: 'Circle' },
-  { id: 'support', label: 'Опоры', icon: 'Columns3' },
+  { id: 'calculations', label: 'Расчеты', icon: 'Calculator' },
   { id: 'flange-db', label: 'База фланцев', icon: 'Database' },
   { id: 'standards', label: 'Нормативы', icon: 'BookOpen' },
   { id: 'docs', label: 'Документация', icon: 'FileText' },

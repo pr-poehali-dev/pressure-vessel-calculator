@@ -2,16 +2,12 @@ import { useState } from 'react';
 import Icon from '@/components/ui/icon';
 import { Separator } from '@/components/ui/separator';
 import { materials, standardFlanges, navigationTabs, getAllowableStress } from '@/lib/constants';
-import WallCalculator from '@/components/calculators/WallCalculator';
-import FlangeCalculator from '@/components/calculators/FlangeCalculator';
-import HeadCalculator from '@/components/calculators/HeadCalculator';
-import SupportCalculator from '@/components/calculators/SupportCalculator';
 import FlangeDatabase from '@/components/calculators/FlangeDatabase';
-import PressureCalculator from '@/components/calculators/PressureCalculator';
 import HomePage from '@/components/sections/HomePage';
 import StandardsPage from '@/components/sections/StandardsPage';
 import DocsPage from '@/components/sections/DocsPage';
 import InputDataPage from '@/components/sections/InputDataPage';
+import CalculationsPage from '@/components/sections/CalculationsPage';
 
 export default function Index() {
   const [activeTab, setActiveTab] = useState('home');
@@ -254,8 +250,8 @@ export default function Index() {
           />
         )}
         
-        {activeTab === 'calculator' && (
-          <WallCalculator
+        {activeTab === 'calculations' && (
+          <CalculationsPage
             diameter={diameter}
             setDiameter={setDiameter}
             pressure={pressure}
@@ -268,28 +264,18 @@ export default function Index() {
             setWeldCoeff={setWeldCoeff}
             result={result}
             calculateThickness={calculateThickness}
-          />
-        )}
-
-        {activeTab === 'pressure' && (
-          <PressureCalculator
-            diameter={pressureDiameter}
-            setDiameter={setPressureDiameter}
-            wallThickness={pressureWallThickness}
-            setWallThickness={setPressureWallThickness}
-            temperature={pressureTemperature}
-            setTemperature={setPressureTemperature}
-            material={pressureMaterial}
-            setMaterial={setPressureMaterial}
-            weldCoeff={pressureWeldCoeff}
-            setWeldCoeff={setPressureWeldCoeff}
-            result={allowablePressure}
-            calculatePressure={calculateAllowablePressure}
-          />
-        )}
-
-        {activeTab === 'flange' && (
-          <FlangeCalculator
+            pressureDiameter={pressureDiameter}
+            setPressureDiameter={setPressureDiameter}
+            pressureWallThickness={pressureWallThickness}
+            setPressureWallThickness={setPressureWallThickness}
+            pressureTemperature={pressureTemperature}
+            setPressureTemperature={setPressureTemperature}
+            pressureMaterial={pressureMaterial}
+            setPressureMaterial={setPressureMaterial}
+            pressureWeldCoeff={pressureWeldCoeff}
+            setPressureWeldCoeff={setPressureWeldCoeff}
+            allowablePressure={allowablePressure}
+            calculateAllowablePressure={calculateAllowablePressure}
             flangeDiameter={flangeDiameter}
             setFlangeDiameter={setFlangeDiameter}
             flangeThickness={flangeThickness}
@@ -300,11 +286,6 @@ export default function Index() {
             setNumBolts={setNumBolts}
             flangeResult={flangeResult}
             calculateFlange={calculateFlange}
-          />
-        )}
-
-        {activeTab === 'head' && (
-          <HeadCalculator
             headDiameter={headDiameter}
             setHeadDiameter={setHeadDiameter}
             headPressure={headPressure}
@@ -317,11 +298,6 @@ export default function Index() {
             setHeadType={setHeadType}
             headResult={headResult}
             calculateHead={calculateHead}
-          />
-        )}
-
-        {activeTab === 'support' && (
-          <SupportCalculator
             supportType={supportType}
             setSupportType={setSupportType}
             vesselDiameter={vesselDiameter}
