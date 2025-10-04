@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import Icon from '@/components/ui/icon';
 import { Separator } from '@/components/ui/separator';
 import { materials, getAllowableStress } from '@/lib/constants';
+import VesselVisualization2D from '@/components/VesselVisualization2D';
 
 interface WallCalculatorProps {
   diameter: string;
@@ -218,6 +219,22 @@ export default function WallCalculator({
                       </table>
                       <p style={{marginTop: '20px', color: '#64748B', fontSize: '12px'}}>Расчеты носят справочный характер</p>
                     </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {result !== null && diameter && pressure && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-sm">Визуализация сосуда</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <VesselVisualization2D
+                      diameter={parseFloat(diameter)}
+                      thickness={result}
+                      pressure={parseFloat(pressure)}
+                      length={2000}
+                    />
                   </CardContent>
                 </Card>
               )}
