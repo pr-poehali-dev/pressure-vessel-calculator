@@ -3,46 +3,65 @@ export const materials = [
     name: 'Сталь 20', 
     youngModulus: 200000,
     stressByTemp: [
-      { temp: 20, stress: 142 },
-      { temp: 100, stress: 137 },
-      { temp: 200, stress: 127 },
-      { temp: 300, stress: 118 },
-      { temp: 400, stress: 108 },
-    ]
+      { temp: 20, stress: 147 },
+      { temp: 100, stress: 142 },
+      { temp: 150, stress: 139 },
+      { temp: 200, stress: 135 },
+      { temp: 250, stress: 131 },
+      { temp: 300, stress: 127 },
+      { temp: 350, stress: 121 },
+      { temp: 400, stress: 114 },
+      { temp: 450, stress: 103 },
+    ],
+    allowableStress: 147
   },
   { 
     name: '09Г2С', 
     youngModulus: 200000,
     stressByTemp: [
-      { temp: 20, stress: 165 },
-      { temp: 100, stress: 160 },
-      { temp: 200, stress: 150 },
-      { temp: 300, stress: 140 },
-      { temp: 400, stress: 128 },
-    ]
+      { temp: 20, stress: 176 },
+      { temp: 100, stress: 171 },
+      { temp: 150, stress: 167 },
+      { temp: 200, stress: 162 },
+      { temp: 250, stress: 157 },
+      { temp: 300, stress: 152 },
+      { temp: 350, stress: 145 },
+      { temp: 400, stress: 137 },
+    ],
+    allowableStress: 176
   },
   { 
     name: '12Х18Н10Т', 
     youngModulus: 200000,
     stressByTemp: [
-      { temp: 20, stress: 133 },
-      { temp: 100, stress: 127 },
-      { temp: 200, stress: 118 },
-      { temp: 300, stress: 110 },
-      { temp: 400, stress: 103 },
-      { temp: 500, stress: 98 },
-    ]
+      { temp: 20, stress: 137 },
+      { temp: 100, stress: 131 },
+      { temp: 150, stress: 127 },
+      { temp: 200, stress: 123 },
+      { temp: 250, stress: 120 },
+      { temp: 300, stress: 117 },
+      { temp: 350, stress: 113 },
+      { temp: 400, stress: 110 },
+      { temp: 450, stress: 107 },
+      { temp: 500, stress: 103 },
+      { temp: 550, stress: 100 },
+    ],
+    allowableStress: 137
   },
   { 
     name: '16ГС', 
     youngModulus: 200000,
     stressByTemp: [
-      { temp: 20, stress: 157 },
-      { temp: 100, stress: 152 },
-      { temp: 200, stress: 142 },
-      { temp: 300, stress: 133 },
-      { temp: 400, stress: 122 },
-    ]
+      { temp: 20, stress: 167 },
+      { temp: 100, stress: 162 },
+      { temp: 150, stress: 158 },
+      { temp: 200, stress: 154 },
+      { temp: 250, stress: 149 },
+      { temp: 300, stress: 144 },
+      { temp: 350, stress: 137 },
+      { temp: 400, stress: 129 },
+    ],
+    allowableStress: 167
   },
 ];
 
@@ -67,7 +86,9 @@ export function getAllowableStress(materialName: string, temperature: number): n
       const s1 = stressData[i].stress;
       const s2 = stressData[i + 1].stress;
       
-      return s1 + ((s2 - s1) * (temperature - t1)) / (t2 - t1);
+      const interpolated = s1 + ((s2 - s1) * (temperature - t1)) / (t2 - t1);
+      
+      return Math.floor(interpolated * 2) / 2;
     }
   }
   
