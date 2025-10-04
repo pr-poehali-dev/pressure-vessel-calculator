@@ -205,18 +205,17 @@ export default function WallCalculator({
                 </Select>
               </div>
 
-              <div className="flex gap-2">
-                <Button onClick={calculateThickness} className="flex-1 bg-blue-600 hover:bg-blue-700" size="lg">
-                  <Icon name="Play" size={18} className="mr-2" />
-                  Рассчитать
+              <Button onClick={calculateThickness} className="w-full bg-blue-600 hover:bg-blue-700" size="lg">
+                <Icon name="Play" size={18} className="mr-2" />
+                Рассчитать
+              </Button>
+              
+              {result !== null && (
+                <Button onClick={exportToPDF} variant="outline" size="lg" className="w-full">
+                  <Icon name="FileDown" size={18} className="mr-2" />
+                  Экспорт в PDF
                 </Button>
-                {result !== null && (
-                  <Button onClick={exportToPDF} variant="outline" size="lg" className="flex-1">
-                    <Icon name="FileDown" size={18} className="mr-2" />
-                    Экспорт в PDF
-                  </Button>
-                )}
-              </div>
+              )}
             </div>
 
             <div className="space-y-4">
