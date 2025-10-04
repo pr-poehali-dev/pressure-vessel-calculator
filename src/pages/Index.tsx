@@ -23,6 +23,21 @@ const standards = [
   { code: 'ГОСТ 52857.1-2007', title: 'Сосуды и аппараты. Нормы и методы расчета на прочность. Расчет цилиндрических и конических обечаек' },
 ];
 
+const standardFlanges = [
+  { type: 'ГОСТ 12815', dn: 50, pn: 1.6, outerDiameter: 165, boltCircle: 125, numBolts: 4, boltSize: 18, thickness: 14 },
+  { type: 'ГОСТ 12815', dn: 80, pn: 1.6, outerDiameter: 200, boltCircle: 160, numBolts: 8, boltSize: 18, thickness: 16 },
+  { type: 'ГОСТ 12815', dn: 100, pn: 1.6, outerDiameter: 220, boltCircle: 180, numBolts: 8, boltSize: 18, thickness: 18 },
+  { type: 'ГОСТ 12815', dn: 150, pn: 1.6, outerDiameter: 285, boltCircle: 240, numBolts: 8, boltSize: 23, thickness: 20 },
+  { type: 'ГОСТ 12815', dn: 200, pn: 1.6, outerDiameter: 340, boltCircle: 295, numBolts: 12, boltSize: 23, thickness: 22 },
+  { type: 'ГОСТ 12815', dn: 250, pn: 1.6, outerDiameter: 405, boltCircle: 355, numBolts: 12, boltSize: 27, thickness: 24 },
+  { type: 'ГОСТ 12815', dn: 300, pn: 1.6, outerDiameter: 460, boltCircle: 410, numBolts: 16, boltSize: 27, thickness: 26 },
+  { type: 'ГОСТ 12821', dn: 50, pn: 2.5, outerDiameter: 165, boltCircle: 125, numBolts: 4, boltSize: 18, thickness: 16 },
+  { type: 'ГОСТ 12821', dn: 80, pn: 2.5, outerDiameter: 200, boltCircle: 160, numBolts: 8, boltSize: 18, thickness: 18 },
+  { type: 'ГОСТ 12821', dn: 100, pn: 2.5, outerDiameter: 235, boltCircle: 190, numBolts: 8, boltSize: 23, thickness: 20 },
+  { type: 'ГОСТ 12821', dn: 150, pn: 2.5, outerDiameter: 300, boltCircle: 250, numBolts: 8, boltSize: 27, thickness: 24 },
+  { type: 'ГОСТ 12821', dn: 200, pn: 2.5, outerDiameter: 360, boltCircle: 310, numBolts: 12, boltSize: 27, thickness: 26 },
+];
+
 export default function Index() {
   const [activeTab, setActiveTab] = useState('home');
   const [diameter, setDiameter] = useState('');
@@ -42,6 +57,17 @@ export default function Index() {
   const [headMaterial, setHeadMaterial] = useState('');
   const [headType, setHeadType] = useState('elliptical');
   const [headResult, setHeadResult] = useState<number | null>(null);
+  
+  const [supportType, setSupportType] = useState('saddle');
+  const [vesselDiameter, setVesselDiameter] = useState('');
+  const [vesselLength, setVesselLength] = useState('');
+  const [vesselWeight, setVesselWeight] = useState('');
+  const [supportMaterial, setSupportMaterial] = useState('');
+  const [supportResult, setSupportResult] = useState<{stress: number; deflection: number; recommendation: string} | null>(null);
+  
+  const [selectedFlangeType, setSelectedFlangeType] = useState('ГОСТ 12815');
+  const [selectedFlangeDN, setSelectedFlangeDN] = useState('');
+  const [selectedFlangePN, setSelectedFlangePN] = useState('1.6');
 
   const calculateThickness = () => {
     const D = parseFloat(diameter);
@@ -96,6 +122,76 @@ export default function Index() {
     setHeadResult(Math.ceil(s * 10) / 10);
   };
 
+  const calculateSupport = () => {
+    const D = parseFloat(vesselDiameter);
+    const L = parseFloat(vesselLength);
+    const W = parseFloat(vesselWeight);
+    const materialData = materials.find(m => m.name === supportMaterial);
+
+    if (!D || !L || !W || !materialData) return;
+
+    let stress = 0;
+    let deflection = 0;
+    let recommendation = '';
+
+    if (supportType === 'saddle') {
+      const reactionForce = W / 2;
+      const contactArea = (D * 200) / 1000;
+      stress = reactionForce / contactArea;
+      deflection = (W * Math.pow(L, 3)) / (48 * materialData.youngModulus * Math.PI * Math.pow(D / 2, 4));
+      
+      if (stress > materialData.allowableStress * 0.8) {
+        recommendation = 'Увеличьте ширину седловой опоры или используйте более прочный материал';
+      } else if (deflection > L / 500) {
+        recommendation = 'Прогиб превышает допустимый. Добавьте дополнительную опору';
+      } else {
+        recommendation = 'Опора подобрана корректно';
+      }
+    } else if (supportType === 'legs') {
+      const numLegs = 4;
+      const legArea = 5000;
+      stress = (W / numLegs) / legArea;
+      deflection = 0;
+      
+      if (stress > materialData.allowableStress) {
+        recommendation = 'Увеличьте сечение опорных лап или их количество';
+      } else {
+        recommendation = 'Опорные лапы подобраны корректно';
+      }
+    } else {
+      const skirtArea = Math.PI * D * 20;
+      stress = W / skirtArea;
+      deflection = 0;
+      
+      if (stress > materialData.allowableStress * 0.6) {
+        recommendation = 'Увеличьте толщину юбки или диаметр';
+      } else {
+        recommendation = 'Юбочная опора подобрана корректно';
+      }
+    }
+
+    setSupportResult({ 
+      stress: Math.round(stress * 10) / 10, 
+      deflection: Math.round(deflection * 100) / 100,
+      recommendation 
+    });
+  };
+
+  const applyStandardFlange = () => {
+    const flange = standardFlanges.find(
+      f => f.type === selectedFlangeType && 
+           f.dn.toString() === selectedFlangeDN && 
+           f.pn.toString() === selectedFlangePN
+    );
+    
+    if (flange) {
+      setFlangeDiameter(flange.dn.toString());
+      setFlangeThickness(flange.thickness.toString());
+      setBoltDiameter(flange.boltSize.toString());
+      setNumBolts(flange.numBolts.toString());
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50">
       <header className="bg-slate-900 text-white border-b border-slate-700">
@@ -116,6 +212,8 @@ export default function Index() {
               { id: 'calculator', label: 'Стенка', icon: 'Calculator' },
               { id: 'flange', label: 'Фланцы', icon: 'Disc' },
               { id: 'head', label: 'Днища', icon: 'Circle' },
+              { id: 'support', label: 'Опоры', icon: 'Columns3' },
+              { id: 'flange-db', label: 'База фланцев', icon: 'Database' },
               { id: 'standards', label: 'Нормативы', icon: 'BookOpen' },
               { id: 'docs', label: 'Документация', icon: 'FileText' },
             ].map((tab) => (
@@ -715,6 +813,305 @@ export default function Index() {
                       </Card>
                     )}
                   </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {activeTab === 'support' && (
+          <div className="space-y-6 animate-fade-in">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Icon name="Columns3" size={24} className="text-blue-600" />
+                  Расчет опорных конструкций
+                </CardTitle>
+                <CardDescription>Расчет седловых опор, опорных лап и юбочных опор</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="supportType" className="font-mono text-xs text-slate-600">Тип опоры</Label>
+                      <Select value={supportType} onValueChange={setSupportType}>
+                        <SelectTrigger className="mt-1.5 font-mono">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="saddle" className="font-mono">Седловая опора</SelectItem>
+                          <SelectItem value="legs" className="font-mono">Опорные лапы</SelectItem>
+                          <SelectItem value="skirt" className="font-mono">Юбочная опора</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="vesselDiameter" className="font-mono text-xs text-slate-600">Диаметр сосуда, мм</Label>
+                      <Input
+                        id="vesselDiameter"
+                        type="number"
+                        placeholder="Введите диаметр"
+                        value={vesselDiameter}
+                        onChange={(e) => setVesselDiameter(e.target.value)}
+                        className="mt-1.5 font-mono"
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="vesselLength" className="font-mono text-xs text-slate-600">Длина сосуда, мм</Label>
+                      <Input
+                        id="vesselLength"
+                        type="number"
+                        placeholder="Введите длину"
+                        value={vesselLength}
+                        onChange={(e) => setVesselLength(e.target.value)}
+                        className="mt-1.5 font-mono"
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="vesselWeight" className="font-mono text-xs text-slate-600">Вес сосуда (заполненного), Н</Label>
+                      <Input
+                        id="vesselWeight"
+                        type="number"
+                        placeholder="Введите вес"
+                        value={vesselWeight}
+                        onChange={(e) => setVesselWeight(e.target.value)}
+                        className="mt-1.5 font-mono"
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="supportMaterial" className="font-mono text-xs text-slate-600">Материал опоры</Label>
+                      <Select value={supportMaterial} onValueChange={setSupportMaterial}>
+                        <SelectTrigger className="mt-1.5 font-mono">
+                          <SelectValue placeholder="Выберите материал" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {materials.map((m) => (
+                            <SelectItem key={m.name} value={m.name} className="font-mono">
+                              {m.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <Button onClick={calculateSupport} className="w-full bg-blue-600 hover:bg-blue-700" size="lg">
+                      <Icon name="Play" size={18} className="mr-2" />
+                      Рассчитать
+                    </Button>
+                  </div>
+
+                  <div className="space-y-4">
+                    {supportResult && (
+                      <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-white animate-scale-in">
+                        <CardHeader>
+                          <CardTitle className="text-lg">Результаты расчета</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <div className="p-4 bg-white rounded-lg border">
+                            <div className="text-xs font-mono text-slate-500 mb-2">Напряжение в опоре</div>
+                            <div className="text-3xl font-bold text-blue-600 font-mono">
+                              {supportResult.stress.toFixed(1)} <span className="text-xl text-slate-600">МПа</span>
+                            </div>
+                          </div>
+
+                          {supportType === 'saddle' && supportResult.deflection > 0 && (
+                            <div className="p-4 bg-white rounded-lg border">
+                              <div className="text-xs font-mono text-slate-500 mb-2">Прогиб сосуда</div>
+                              <div className="text-3xl font-bold text-blue-600 font-mono">
+                                {supportResult.deflection.toFixed(2)} <span className="text-xl text-slate-600">мм</span>
+                              </div>
+                            </div>
+                          )}
+
+                          <Separator />
+
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between font-mono">
+                              <span className="text-slate-600">Тип опоры:</span>
+                              <span className="font-semibold">
+                                {supportType === 'saddle' && 'Седловая'}
+                                {supportType === 'legs' && 'Опорные лапы'}
+                                {supportType === 'skirt' && 'Юбочная'}
+                              </span>
+                            </div>
+                            <div className="flex justify-between font-mono">
+                              <span className="text-slate-600">Диаметр:</span>
+                              <span className="font-semibold">{vesselDiameter} мм</span>
+                            </div>
+                            <div className="flex justify-between font-mono">
+                              <span className="text-slate-600">Вес:</span>
+                              <span className="font-semibold">{parseFloat(vesselWeight).toLocaleString()} Н</span>
+                            </div>
+                            <div className="flex justify-between font-mono">
+                              <span className="text-slate-600">Материал:</span>
+                              <span className="font-semibold">{supportMaterial}</span>
+                            </div>
+                          </div>
+
+                          <Separator />
+
+                          <div className={`p-3 rounded border ${
+                            supportResult.recommendation.includes('корректно')
+                              ? 'bg-green-50 border-green-200' 
+                              : 'bg-amber-50 border-amber-200'
+                          }`}>
+                            <div className="flex items-start gap-2">
+                              <Icon 
+                                name={supportResult.recommendation.includes('корректно') ? "CheckCircle" : "AlertTriangle"} 
+                                size={18} 
+                                className={`mt-0.5 ${supportResult.recommendation.includes('корректно') ? 'text-green-600' : 'text-amber-600'}`} 
+                              />
+                              <div className={`text-xs ${supportResult.recommendation.includes('корректно') ? 'text-green-800' : 'text-amber-800'}`}>
+                                <strong>Рекомендация:</strong> {supportResult.recommendation}
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-sm">Информация о типах опор</CardTitle>
+                      </CardHeader>
+                      <CardContent className="text-xs space-y-2 text-slate-600">
+                        <div>
+                          <strong className="text-slate-900">Седловая опора:</strong> Для горизонтальных сосудов большого диаметра
+                        </div>
+                        <div>
+                          <strong className="text-slate-900">Опорные лапы:</strong> Для вертикальных и горизонтальных сосудов малого/среднего размера
+                        </div>
+                        <div>
+                          <strong className="text-slate-900">Юбочная опора:</strong> Для вертикальных колонных аппаратов
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {activeTab === 'flange-db' && (
+          <div className="space-y-6 animate-fade-in">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Icon name="Database" size={24} className="text-blue-600" />
+                  База данных стандартных фланцев
+                </CardTitle>
+                <CardDescription>Быстрый выбор параметров фланцев по ГОСТ</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid md:grid-cols-3 gap-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div>
+                    <Label htmlFor="flangeTypeSelect" className="font-mono text-xs text-slate-600">Тип фланца</Label>
+                    <Select value={selectedFlangeType} onValueChange={setSelectedFlangeType}>
+                      <SelectTrigger className="mt-1.5 font-mono bg-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="ГОСТ 12815" className="font-mono">ГОСТ 12815 (PN 1.6)</SelectItem>
+                        <SelectItem value="ГОСТ 12821" className="font-mono">ГОСТ 12821 (PN 2.5)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="flangeDNSelect" className="font-mono text-xs text-slate-600">Условный проход DN</Label>
+                    <Select value={selectedFlangeDN} onValueChange={setSelectedFlangeDN}>
+                      <SelectTrigger className="mt-1.5 font-mono bg-white">
+                        <SelectValue placeholder="Выберите DN" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {[...new Set(standardFlanges.filter(f => f.type === selectedFlangeType).map(f => f.dn))].map(dn => (
+                          <SelectItem key={dn} value={dn.toString()} className="font-mono">DN {dn}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="flangePNSelect" className="font-mono text-xs text-slate-600">Номинальное давление PN</Label>
+                    <Select value={selectedFlangePN} onValueChange={setSelectedFlangePN}>
+                      <SelectTrigger className="mt-1.5 font-mono bg-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1.6" className="font-mono">PN 1.6</SelectItem>
+                        <SelectItem value="2.5" className="font-mono">PN 2.5</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <Button 
+                    onClick={applyStandardFlange} 
+                    className="bg-blue-600 hover:bg-blue-700"
+                    disabled={!selectedFlangeDN}
+                  >
+                    <Icon name="Download" size={18} className="mr-2" />
+                    Применить к калькулятору фланцев
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    onClick={() => setActiveTab('flange')}
+                  >
+                    Перейти к расчету
+                  </Button>
+                </div>
+
+                <Separator />
+
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="font-mono">Тип</TableHead>
+                        <TableHead className="font-mono">DN</TableHead>
+                        <TableHead className="font-mono">PN</TableHead>
+                        <TableHead className="font-mono">D наружный, мм</TableHead>
+                        <TableHead className="font-mono">D болт. окр., мм</TableHead>
+                        <TableHead className="font-mono">Кол-во болтов</TableHead>
+                        <TableHead className="font-mono">d болта, мм</TableHead>
+                        <TableHead className="font-mono">Толщина, мм</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {standardFlanges.map((flange, i) => (
+                        <TableRow 
+                          key={i}
+                          className={`cursor-pointer hover:bg-blue-50 ${
+                            selectedFlangeType === flange.type && 
+                            selectedFlangeDN === flange.dn.toString() && 
+                            selectedFlangePN === flange.pn.toString()
+                              ? 'bg-blue-100' 
+                              : ''
+                          }`}
+                          onClick={() => {
+                            setSelectedFlangeType(flange.type);
+                            setSelectedFlangeDN(flange.dn.toString());
+                            setSelectedFlangePN(flange.pn.toString());
+                          }}
+                        >
+                          <TableCell className="font-mono text-xs">{flange.type}</TableCell>
+                          <TableCell className="font-mono font-semibold">{flange.dn}</TableCell>
+                          <TableCell className="font-mono">{flange.pn}</TableCell>
+                          <TableCell className="font-mono">{flange.outerDiameter}</TableCell>
+                          <TableCell className="font-mono">{flange.boltCircle}</TableCell>
+                          <TableCell className="font-mono">{flange.numBolts}</TableCell>
+                          <TableCell className="font-mono">{flange.boltSize}</TableCell>
+                          <TableCell className="font-mono">{flange.thickness}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
                 </div>
               </CardContent>
             </Card>
