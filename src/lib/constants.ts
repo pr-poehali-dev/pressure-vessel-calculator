@@ -125,6 +125,7 @@ export const navigationTabs = [
   { id: 'home', label: 'Главная', icon: 'Home' },
   { id: 'input-data', label: 'Исходные данные', icon: 'ClipboardList' },
   { id: 'calculator', label: 'Расчет на прочность', icon: 'Calculator' },
+  { id: 'corrosion', label: 'Скорость коррозии', icon: 'Activity' },
   { id: 'lifetime', label: 'Остаточный ресурс', icon: 'Clock' },
   { id: 'flange-db', label: 'База фланцев', icon: 'Database' },
   { id: 'standards', label: 'Нормативы', icon: 'BookOpen' },

@@ -8,6 +8,7 @@ import StandardsPage from '@/components/sections/StandardsPage';
 import DocsPage from '@/components/sections/DocsPage';
 import InputDataPage from '@/components/sections/InputDataPage';
 import WallCalculator from '@/components/calculators/WallCalculator';
+import CorrosionRateCalculator from '@/components/calculators/CorrosionRateCalculator';
 import LifetimeCalculator from '@/components/calculators/LifetimeCalculator';
 
 export default function Index() {
@@ -267,6 +268,8 @@ export default function Index() {
             calculateThickness={calculateThickness}
           />
         )}
+
+        {activeTab === 'corrosion' && <CorrosionRateCalculator />}
 
         {activeTab === 'lifetime' && <LifetimeCalculator />}
 
