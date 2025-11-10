@@ -35,7 +35,7 @@ export default function SimpleCorrosionCalculator({
           Простой расчет скорости коррозии
         </CardTitle>
         <CardDescription>
-          На основе двух замеров (начальная и текущая толщина)
+          По РД 03-421-01 (п. 5.2) - метод двух замеров толщины
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">

@@ -48,7 +48,7 @@ export default function AdvancedCorrosionCalculator({
           Расширенный расчет с трендом
         </CardTitle>
         <CardDescription>
-          На основе нескольких измерений с анализом динамики
+          По РД 03-421-01 (п. 5.2) - метод множественных замеров с прогнозированием
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">

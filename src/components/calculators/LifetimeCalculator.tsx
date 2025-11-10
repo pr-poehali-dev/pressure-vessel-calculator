@@ -43,10 +43,12 @@ export default function LifetimeCalculator() {
 
     const sigma = getAllowableStress(material, T);
     const currentThickness = s0 - v * t;
+    
     const minRequiredThickness = (P * D) / (2 * sigma * phi - P);
-    const corrosionAllowance = 1.0;
+    const corrosionAllowance = 2.0;
     const calculatedMinThickness = minRequiredThickness + corrosionAllowance;
     const minAllowedThickness = sRej && sRej > calculatedMinThickness ? sRej : calculatedMinThickness;
+    
     const remainingWear = currentThickness - minAllowedThickness;
     const remainingLife = remainingWear > 0 ? remainingWear / v : 0;
     const totalLife = (s0 - minAllowedThickness) / v;
@@ -109,7 +111,7 @@ export default function LifetimeCalculator() {
             Расчет остаточного ресурса
           </CardTitle>
           <CardDescription>
-            Определение срока службы с учетом коррозионного износа
+            По РД 03-421-01 (Правила безопасной эксплуатации сосудов под давлением)
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -300,9 +302,9 @@ export default function LifetimeCalculator() {
 
             <div className="pt-4 border-t border-slate-200">
               <div className="text-xs text-slate-500 space-y-1">
-                <p>ℹ️ Расчет выполнен по методике ГОСТ 34233.2-2017</p>
-                <p>ℹ️ Учтена минимальная толщина с запасом на коррозию 1.0 мм</p>
-                <p>ℹ️ Рекомендуется проводить УЗК-контроль каждые 2 года</p>
+                <p>ℹ️ Расчет выполнен по методике РД 03-421-01 (п. 5.3)</p>
+                <p>ℹ️ Учтена прибавка на коррозию 2.0 мм (РД 03-421-01)</p>
+                <p>ℹ️ Срок следующего освидетельствования назначается по РД 03-421-01</p>
               </div>
             </div>
           </CardContent>
