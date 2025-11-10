@@ -110,14 +110,19 @@ export default function Index() {
     if (!D || !P || !headMaterial || isNaN(T)) return;
 
     const sigma = getAllowableStress(headMaterial, T);
+    const phi = 1.0;
     let s = 0;
 
     if (headType === 'elliptical') {
-      s = (P * D) / (4 * sigma - 0.4 * P);
+      s = (P * D) / (4 * sigma * phi - 0.4 * P);
     } else if (headType === 'hemispherical') {
-      s = (P * D) / (4 * sigma - P);
+      s = (P * D) / (4 * sigma * phi - P);
+    } else if (headType === 'torispherical') {
+      const R = D;
+      s = (P * R) / (2 * sigma * phi - 0.5 * P);
     } else {
-      s = (0.44 * P * D) / sigma;
+      const K = 0.42;
+      s = D * Math.sqrt((K * P) / sigma);
     }
 
     setHeadResult(Math.ceil(s * 10) / 10);

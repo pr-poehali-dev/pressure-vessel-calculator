@@ -42,9 +42,9 @@ export default function HeadCalculator({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Icon name="Circle" size={24} className="text-blue-600" />
-            Расчет толщины днища
+            Расчет днищ
           </CardTitle>
-          <CardDescription>Расчет эллиптических, сферических и плоских днищ</CardDescription>
+          <CardDescription>По ГОСТ 34233.2-2017, раздел 6</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="grid md:grid-cols-2 gap-6">
@@ -58,6 +58,7 @@ export default function HeadCalculator({
                   <SelectContent>
                     <SelectItem value="elliptical" className="font-mono">Эллиптическое (2:1)</SelectItem>
                     <SelectItem value="hemispherical" className="font-mono">Полусферическое</SelectItem>
+                    <SelectItem value="torispherical" className="font-mono">Торосферическое</SelectItem>
                     <SelectItem value="flat" className="font-mono">Плоское</SelectItem>
                   </SelectContent>
                 </Select>
@@ -144,6 +145,7 @@ export default function HeadCalculator({
                         <span className="font-semibold">
                           {headType === 'elliptical' && 'Эллиптическое'}
                           {headType === 'hemispherical' && 'Полусферическое'}
+                          {headType === 'torispherical' && 'Торосферическое'}
                           {headType === 'flat' && 'Плоское'}
                         </span>
                       </div>
@@ -165,10 +167,11 @@ export default function HeadCalculator({
 
                     <div className="p-3 bg-blue-50 border border-blue-200 rounded">
                       <div className="text-xs text-blue-800 space-y-1">
-                        <div><strong>Формула:</strong></div>
-                        {headType === 'elliptical' && <div className="font-mono">s = (P × D) / (4 × σ - 0.4 × P)</div>}
-                        {headType === 'hemispherical' && <div className="font-mono">s = (P × D) / (4 × σ - P)</div>}
-                        {headType === 'flat' && <div className="font-mono">s = (0.44 × P × D) / σ</div>}
+                        <div><strong>Формула (ГОСТ 34233.2-2017):</strong></div>
+                        {headType === 'elliptical' && <div className="font-mono">s = (P × D) / (4 × [σ] × φ - 0.4 × P)</div>}
+                        {headType === 'hemispherical' && <div className="font-mono">s = (P × D) / (4 × [σ] × φ - P)</div>}
+                        {headType === 'torispherical' && <div className="font-mono">s = (P × R) / (2 × [σ] × φ - 0.5 × P)</div>}
+                        {headType === 'flat' && <div className="font-mono">s = D × √(K × P / [σ])</div>}
                       </div>
                     </div>
 
@@ -176,7 +179,12 @@ export default function HeadCalculator({
                       <div className="flex items-start gap-2">
                         <Icon name="Info" size={18} className="text-amber-600 mt-0.5" />
                         <div className="text-xs text-amber-800">
-                          <strong>Примечание:</strong> Для плоских днищ рекомендуется использовать ребра жесткости при больших диаметрах
+                          <strong>Примечания:</strong>
+                          <ul className="mt-1 space-y-1 ml-2">
+                            <li>• Добавьте прибавку на коррозию (1-3 мм)</li>
+                            <li>• Для эллиптических: H = 0.25 × D</li>
+                            <li>• Для торосферических: R = D, r = 0.1 × D</li>
+                          </ul>
                         </div>
                       </div>
                     </div>
