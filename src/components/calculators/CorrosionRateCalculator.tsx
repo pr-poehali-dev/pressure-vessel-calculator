@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 interface Measurement {
   id: string;
@@ -35,6 +37,7 @@ export default function CorrosionRateCalculator() {
   const [newMeasurementThickness, setNewMeasurementThickness] = useState('');
   const [newMeasurementYears, setNewMeasurementYears] = useState('');
   const [result, setResult] = useState<CorrosionResult | null>(null);
+  const chartRef = useRef<HTMLDivElement>(null);
 
   const calculateSimpleRate = () => {
     const s0 = parseFloat(initialThickness);
@@ -270,6 +273,172 @@ export default function CorrosionRateCalculator() {
     return chartData;
   };
 
+  const exportToPDF = async () => {
+    if (!result) return;
+
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const margin = 15;
+    let yPosition = 20;
+
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(18);
+    pdf.text('Отчет об анализе коррозии', pageWidth / 2, yPosition, { align: 'center' });
+    
+    yPosition += 10;
+    pdf.setFontSize(10);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text(`Дата формирования: ${new Date().toLocaleDateString('ru-RU')}`, pageWidth / 2, yPosition, { align: 'center' });
+    
+    yPosition += 15;
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(14);
+    pdf.text('Основные показатели', margin, yPosition);
+    
+    yPosition += 8;
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(11);
+    pdf.text(`Текущая скорость коррозии: ${result.corrosionRate} мм/год`, margin, yPosition);
+    
+    yPosition += 6;
+    pdf.text(`Средняя скорость коррозии: ${result.averageRate} мм/год`, margin, yPosition);
+    
+    yPosition += 6;
+    pdf.text(`Общая потеря толщины: ${result.totalLoss} мм`, margin, yPosition);
+    
+    yPosition += 6;
+    const trendText = result.trend === 'increasing' ? 'Ускоряется' : 
+                      result.trend === 'decreasing' ? 'Замедляется' : 'Стабильная';
+    pdf.text(`Тренд: ${trendText}`, margin, yPosition);
+
+    if (measurements.length > 0) {
+      yPosition += 12;
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(14);
+      pdf.text('История измерений', margin, yPosition);
+      
+      yPosition += 8;
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(10);
+      pdf.text('Дата', margin, yPosition);
+      pdf.text('Толщина (мм)', margin + 40, yPosition);
+      pdf.text('Срок (лет)', margin + 80, yPosition);
+      
+      yPosition += 6;
+      pdf.setFont('helvetica', 'normal');
+      
+      const sortedMeasurements = [...measurements].sort((a, b) => a.years - b.years);
+      for (const m of sortedMeasurements) {
+        if (yPosition > 270) {
+          pdf.addPage();
+          yPosition = 20;
+        }
+        pdf.text(m.date, margin, yPosition);
+        pdf.text(m.thickness.toString(), margin + 40, yPosition);
+        pdf.text(m.years.toString(), margin + 80, yPosition);
+        yPosition += 6;
+      }
+    }
+
+    yPosition += 10;
+    if (yPosition > 250) {
+      pdf.addPage();
+      yPosition = 20;
+    }
+    
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(14);
+    pdf.text('Прогноз толщины стенки', margin, yPosition);
+    
+    yPosition += 8;
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(11);
+    pdf.text(`Через 1 год: ${result.prediction.oneYear} мм`, margin, yPosition);
+    
+    yPosition += 6;
+    pdf.text(`Через 5 лет: ${result.prediction.fiveYears} мм`, margin, yPosition);
+    
+    yPosition += 6;
+    pdf.text(`Через 10 лет: ${result.prediction.tenYears} мм`, margin, yPosition);
+
+    if (chartRef.current) {
+      yPosition += 10;
+      if (yPosition > 200) {
+        pdf.addPage();
+        yPosition = 20;
+      }
+      
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(14);
+      pdf.text('График изменения толщины', margin, yPosition);
+      
+      yPosition += 5;
+      
+      try {
+        const canvas = await html2canvas(chartRef.current, {
+          scale: 2,
+          backgroundColor: '#ffffff',
+          logging: false
+        });
+        
+        const imgData = canvas.toDataURL('image/png');
+        const imgWidth = pageWidth - (margin * 2);
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        
+        if (yPosition + imgHeight > 280) {
+          pdf.addPage();
+          yPosition = 20;
+        }
+        
+        pdf.addImage(imgData, 'PNG', margin, yPosition, imgWidth, imgHeight);
+        yPosition += imgHeight + 10;
+      } catch (error) {
+        console.error('Error capturing chart:', error);
+      }
+    }
+
+    if (yPosition > 250) {
+      pdf.addPage();
+      yPosition = 20;
+    } else {
+      yPosition += 10;
+    }
+    
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(14);
+    pdf.text('Рекомендации', margin, yPosition);
+    
+    yPosition += 8;
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(10);
+    
+    const recommendationLines = pdf.splitTextToSize(result.recommendation, pageWidth - (margin * 2));
+    for (const line of recommendationLines) {
+      if (yPosition > 275) {
+        pdf.addPage();
+        yPosition = 20;
+      }
+      pdf.text(line, margin, yPosition);
+      yPosition += 5;
+    }
+
+    yPosition += 10;
+    if (yPosition > 270) {
+      pdf.addPage();
+      yPosition = 20;
+    }
+    
+    pdf.setFont('helvetica', 'italic');
+    pdf.setFontSize(8);
+    pdf.text('Расчет выполнен по методике ГОСТ 9.908-85', margin, yPosition);
+    yPosition += 4;
+    pdf.text('Прогноз основан на линейной экстраполяции текущей скорости коррозии', margin, yPosition);
+    yPosition += 4;
+    pdf.text('Рекомендуется проводить УЗК-контроль в соответствии с графиком', margin, yPosition);
+
+    pdf.save(`corrosion-report-${new Date().toISOString().split('T')[0]}.pdf`);
+  };
+
   return (
     <div className="space-y-6">
       <div className="grid lg:grid-cols-2 gap-6">
@@ -404,10 +573,16 @@ export default function CorrosionRateCalculator() {
       {result && (
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Icon name="BarChart3" size={24} className="text-blue-600" />
-              Результаты анализа коррозии
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Icon name="BarChart3" size={24} className="text-blue-600" />
+                Результаты анализа коррозии
+              </CardTitle>
+              <Button onClick={exportToPDF} variant="outline" size="sm">
+                <Icon name="FileDown" size={18} className="mr-2" />
+                Экспорт в PDF
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -446,7 +621,7 @@ export default function CorrosionRateCalculator() {
             </div>
 
             <div className="space-y-4">
-              <div className="p-4 bg-slate-50 rounded-lg">
+              <div className="p-4 bg-slate-50 rounded-lg" ref={chartRef}>
                 <h3 className="font-semibold text-slate-900 mb-4 flex items-center gap-2">
                   <Icon name="LineChart" size={18} />
                   График изменения толщины
