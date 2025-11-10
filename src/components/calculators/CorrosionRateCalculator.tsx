@@ -9,6 +9,7 @@ export default function CorrosionRateCalculator() {
   const [initialThickness, setInitialThickness] = useState('');
   const [currentThickness, setCurrentThickness] = useState('');
   const [operatingYears, setOperatingYears] = useState('');
+  const [commissioningDate, setCommissioningDate] = useState('');
   const [measurements, setMeasurements] = useState<Measurement[]>([]);
   const [newMeasurementDate, setNewMeasurementDate] = useState('');
   const [newMeasurementThickness, setNewMeasurementThickness] = useState('');
@@ -303,6 +304,8 @@ export default function CorrosionRateCalculator() {
           setCurrentThickness={setCurrentThickness}
           operatingYears={operatingYears}
           setOperatingYears={setOperatingYears}
+          commissioningDate={commissioningDate}
+          setCommissioningDate={setCommissioningDate}
           onCalculate={calculateSimpleRate}
         />
 
@@ -314,6 +317,8 @@ export default function CorrosionRateCalculator() {
           setNewMeasurementThickness={setNewMeasurementThickness}
           newMeasurementYears={newMeasurementYears}
           setNewMeasurementYears={setNewMeasurementYears}
+          commissioningDate={commissioningDate}
+          setCommissioningDate={setCommissioningDate}
           onAddMeasurement={addMeasurement}
           onRemoveMeasurement={removeMeasurement}
           onCalculate={calculateAdvancedRate}

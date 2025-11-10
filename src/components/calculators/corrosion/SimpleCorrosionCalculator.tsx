@@ -11,6 +11,8 @@ interface SimpleCorrosionCalculatorProps {
   setCurrentThickness: (value: string) => void;
   operatingYears: string;
   setOperatingYears: (value: string) => void;
+  commissioningDate: string;
+  setCommissioningDate: (value: string) => void;
   onCalculate: () => void;
 }
 
@@ -21,6 +23,8 @@ export default function SimpleCorrosionCalculator({
   setCurrentThickness,
   operatingYears,
   setOperatingYears,
+  commissioningDate,
+  setCommissioningDate,
   onCalculate
 }: SimpleCorrosionCalculatorProps) {
   return (
@@ -35,6 +39,16 @@ export default function SimpleCorrosionCalculator({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="commissioningDate">Дата ввода в эксплуатацию</Label>
+          <Input
+            id="commissioningDate"
+            type="date"
+            value={commissioningDate}
+            onChange={(e) => setCommissioningDate(e.target.value)}
+          />
+        </div>
+        
         <div className="grid sm:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="initialThickness">Начальная толщина, мм</Label>

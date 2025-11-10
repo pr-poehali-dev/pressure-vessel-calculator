@@ -1,6 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
 
 export interface Measurement {
@@ -18,6 +19,8 @@ interface AdvancedCorrosionCalculatorProps {
   setNewMeasurementThickness: (value: string) => void;
   newMeasurementYears: string;
   setNewMeasurementYears: (value: string) => void;
+  commissioningDate: string;
+  setCommissioningDate: (value: string) => void;
   onAddMeasurement: () => void;
   onRemoveMeasurement: (id: string) => void;
   onCalculate: () => void;
@@ -31,6 +34,8 @@ export default function AdvancedCorrosionCalculator({
   setNewMeasurementThickness,
   newMeasurementYears,
   setNewMeasurementYears,
+  commissioningDate,
+  setCommissioningDate,
   onAddMeasurement,
   onRemoveMeasurement,
   onCalculate
@@ -47,6 +52,16 @@ export default function AdvancedCorrosionCalculator({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="advancedCommissioningDate">Дата ввода в эксплуатацию</Label>
+          <Input
+            id="advancedCommissioningDate"
+            type="date"
+            value={commissioningDate}
+            onChange={(e) => setCommissioningDate(e.target.value)}
+          />
+        </div>
+        
         <div className="p-3 bg-blue-50 rounded-lg mb-3 text-sm text-slate-700">
           <Icon name="Info" size={16} className="inline mr-1 text-blue-600" />
           <strong>Срок</strong> — это количество лет с момента ввода в эксплуатацию. Например: 0, 2, 5, 7 лет.
