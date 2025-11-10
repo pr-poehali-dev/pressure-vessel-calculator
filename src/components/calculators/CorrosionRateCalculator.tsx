@@ -4,6 +4,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts';
 
 interface Measurement {
   id: string;
@@ -208,6 +209,67 @@ export default function CorrosionRateCalculator() {
     }
   };
 
+  const generateChartData = () => {
+    if (!result) return [];
+
+    const chartData = [];
+
+    if (measurements.length >= 2) {
+      const sortedMeasurements = [...measurements].sort((a, b) => a.years - b.years);
+      
+      for (const m of sortedMeasurements) {
+        chartData.push({
+          year: m.years,
+          actual: m.thickness,
+          predicted: null
+        });
+      }
+
+      const lastMeasurement = sortedMeasurements[sortedMeasurements.length - 1];
+      const futureYears = [1, 5, 10];
+      
+      for (const deltaYear of futureYears) {
+        const futureYear = lastMeasurement.years + deltaYear;
+        const predictedThickness = lastMeasurement.thickness - result.corrosionRate * deltaYear;
+        
+        chartData.push({
+          year: futureYear,
+          actual: null,
+          predicted: Math.max(0, predictedThickness)
+        });
+      }
+    } else if (initialThickness && currentThickness && operatingYears) {
+      const s0 = parseFloat(initialThickness);
+      const years = parseFloat(operatingYears);
+      
+      chartData.push({
+        year: 0,
+        actual: s0,
+        predicted: null
+      });
+      
+      chartData.push({
+        year: years,
+        actual: parseFloat(currentThickness),
+        predicted: null
+      });
+
+      const futureYears = [years + 1, years + 5, years + 10];
+      for (const futureYear of futureYears) {
+        const deltaYear = futureYear - years;
+        const predictedThickness = parseFloat(currentThickness) - result.corrosionRate * deltaYear;
+        
+        chartData.push({
+          year: futureYear,
+          actual: null,
+          predicted: Math.max(0, predictedThickness)
+        });
+      }
+    }
+
+    return chartData;
+  };
+
   return (
     <div className="space-y-6">
       <div className="grid lg:grid-cols-2 gap-6">
@@ -384,6 +446,59 @@ export default function CorrosionRateCalculator() {
             </div>
 
             <div className="space-y-4">
+              <div className="p-4 bg-slate-50 rounded-lg">
+                <h3 className="font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                  <Icon name="LineChart" size={18} />
+                  График изменения толщины
+                </h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={generateChartData()} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                    <XAxis 
+                      dataKey="year" 
+                      label={{ value: 'Срок эксплуатации (лет)', position: 'insideBottom', offset: -5 }}
+                      stroke="#64748b"
+                    />
+                    <YAxis 
+                      label={{ value: 'Толщина (мм)', angle: -90, position: 'insideLeft' }}
+                      stroke="#64748b"
+                    />
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px' }}
+                      formatter={(value: number) => `${value.toFixed(2)} мм`}
+                    />
+                    <Legend />
+                    <Line 
+                      type="monotone" 
+                      dataKey="actual" 
+                      stroke="#3b82f6" 
+                      strokeWidth={2}
+                      dot={{ fill: '#3b82f6', r: 5 }}
+                      name="Фактические измерения"
+                      connectNulls={false}
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="predicted" 
+                      stroke="#f97316" 
+                      strokeWidth={2}
+                      strokeDasharray="5 5"
+                      dot={{ fill: '#f97316', r: 4 }}
+                      name="Прогноз"
+                      connectNulls={false}
+                    />
+                    {result && (
+                      <ReferenceLine 
+                        y={0} 
+                        stroke="#ef4444" 
+                        strokeDasharray="3 3"
+                        label={{ value: 'Критический уровень', position: 'insideBottomRight', fill: '#ef4444' }}
+                      />
+                    )}
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+
               <div className="p-4 bg-blue-50 rounded-lg">
                 <h3 className="font-semibold text-blue-900 mb-3 flex items-center gap-2">
                   <Icon name="Calendar" size={18} />
