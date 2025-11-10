@@ -24,6 +24,7 @@ export default function LifetimeCalculator() {
   const [temperature, setTemperature] = useState('20');
   const [material, setMaterial] = useState('');
   const [weldCoeff, setWeldCoeff] = useState('1.0');
+  const [rejectionThickness, setRejectionThickness] = useState('');
   const [result, setResult] = useState<LifetimeResult | null>(null);
 
   const calculateRemainingLife = () => {
@@ -34,6 +35,7 @@ export default function LifetimeCalculator() {
     const P = parseFloat(pressure);
     const T = parseFloat(temperature);
     const phi = parseFloat(weldCoeff);
+    const sRej = rejectionThickness ? parseFloat(rejectionThickness) : null;
 
     if (!D || !s0 || !t || !v || !P || !material || !phi || isNaN(T)) {
       return;
@@ -43,7 +45,8 @@ export default function LifetimeCalculator() {
     const currentThickness = s0 - v * t;
     const minRequiredThickness = (P * D) / (2 * sigma * phi - P);
     const corrosionAllowance = 1.0;
-    const minAllowedThickness = minRequiredThickness + corrosionAllowance;
+    const calculatedMinThickness = minRequiredThickness + corrosionAllowance;
+    const minAllowedThickness = sRej && sRej > calculatedMinThickness ? sRej : calculatedMinThickness;
     const remainingWear = currentThickness - minAllowedThickness;
     const remainingLife = remainingWear > 0 ? remainingWear / v : 0;
     const totalLife = (s0 - minAllowedThickness) / v;
@@ -207,6 +210,21 @@ export default function LifetimeCalculator() {
                   <SelectItem value="0.8">0.8 (без контроля)</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="rejectionThickness">
+                Отбраковочная толщина, мм
+                <span className="text-xs font-normal text-slate-500 ml-1">(необязательно)</span>
+              </Label>
+              <Input
+                id="rejectionThickness"
+                type="number"
+                step="0.1"
+                placeholder="Мин. допустимая толщина"
+                value={rejectionThickness}
+                onChange={(e) => setRejectionThickness(e.target.value)}
+              />
             </div>
           </div>
 
