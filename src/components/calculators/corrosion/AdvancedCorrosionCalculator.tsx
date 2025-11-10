@@ -47,6 +47,11 @@ export default function AdvancedCorrosionCalculator({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        <div className="p-3 bg-blue-50 rounded-lg mb-3 text-sm text-slate-700">
+          <Icon name="Info" size={16} className="inline mr-1 text-blue-600" />
+          <strong>Срок</strong> — это количество лет с момента ввода в эксплуатацию. Например: 0, 2, 5, 7 лет.
+        </div>
+        
         <div className="space-y-3">
           <div className="grid grid-cols-[1fr,1fr,1fr,auto] gap-2 text-sm font-medium text-slate-600">
             <div>Дата</div>
@@ -81,13 +86,13 @@ export default function AdvancedCorrosionCalculator({
             />
             <Input
               type="number"
-              placeholder="Толщина"
+              placeholder="Толщина, мм"
               value={newMeasurementThickness}
               onChange={(e) => setNewMeasurementThickness(e.target.value)}
             />
             <Input
               type="number"
-              placeholder="Срок"
+              placeholder="Лет с начала"
               value={newMeasurementYears}
               onChange={(e) => setNewMeasurementYears(e.target.value)}
             />

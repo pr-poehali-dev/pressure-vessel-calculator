@@ -59,7 +59,12 @@ export default function SimpleCorrosionCalculator({
           </div>
 
           <div className="space-y-2 sm:col-span-2">
-            <Label htmlFor="operatingYears">Срок эксплуатации, лет</Label>
+            <Label htmlFor="operatingYears" className="flex items-center gap-2">
+              Срок эксплуатации, лет
+              <span className="text-xs font-normal text-slate-500">
+                (время между начальным и текущим замером)
+              </span>
+            </Label>
             <Input
               id="operatingYears"
               type="number"
