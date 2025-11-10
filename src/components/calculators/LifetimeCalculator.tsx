@@ -300,7 +300,7 @@ export default function LifetimeCalculator() {
 
             <div className="pt-4 border-t border-slate-200">
               <div className="text-xs text-slate-500 space-y-1">
-                <p>ℹ️ Расчет выполнен по методике ГОСТ 32569-2013</p>
+                <p>ℹ️ Расчет выполнен по методике ГОСТ 34233.2-2017</p>
                 <p>ℹ️ Учтена минимальная толщина с запасом на коррозию 1.0 мм</p>
                 <p>ℹ️ Рекомендуется проводить УЗК-контроль каждые 2 года</p>
               </div>
