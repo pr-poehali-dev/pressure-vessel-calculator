@@ -124,7 +124,8 @@ export const standardFlanges = [
 export const navigationTabs = [
   { id: 'home', label: 'Главная', icon: 'Home' },
   { id: 'input-data', label: 'Исходные данные', icon: 'ClipboardList' },
-  { id: 'calculator', label: 'Расчет на прочность', icon: 'Calculator' },
+  { id: 'calculator', label: 'Расчет обечаек', icon: 'Calculator' },
+  { id: 'head-calculator', label: 'Расчет днищ', icon: 'Circle' },
   { id: 'corrosion', label: 'Скорость коррозии', icon: 'Activity' },
   { id: 'lifetime', label: 'Остаточный ресурс', icon: 'Clock' },
   { id: 'flange-db', label: 'База фланцев', icon: 'Database' },

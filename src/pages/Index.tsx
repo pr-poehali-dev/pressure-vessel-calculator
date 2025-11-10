@@ -8,6 +8,7 @@ import StandardsPage from '@/components/sections/StandardsPage';
 import DocsPage from '@/components/sections/DocsPage';
 import InputDataPage from '@/components/sections/InputDataPage';
 import WallCalculator from '@/components/calculators/WallCalculator';
+import HeadCalculator from '@/components/calculators/HeadCalculator';
 import CorrosionRateCalculator from '@/components/calculators/CorrosionRateCalculator';
 import LifetimeCalculator from '@/components/calculators/LifetimeCalculator';
 
@@ -271,6 +272,23 @@ export default function Index() {
             setWeldCoeff={setWeldCoeff}
             result={result}
             calculateThickness={calculateThickness}
+          />
+        )}
+
+        {activeTab === 'head-calculator' && (
+          <HeadCalculator
+            headDiameter={headDiameter}
+            setHeadDiameter={setHeadDiameter}
+            headPressure={headPressure}
+            setHeadPressure={setHeadPressure}
+            headTemperature={headTemperature}
+            setHeadTemperature={setHeadTemperature}
+            headMaterial={headMaterial}
+            setHeadMaterial={setHeadMaterial}
+            headType={headType}
+            setHeadType={setHeadType}
+            headResult={headResult}
+            calculateHead={calculateHead}
           />
         )}
 
