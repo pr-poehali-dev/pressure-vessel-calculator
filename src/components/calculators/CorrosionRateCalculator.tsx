@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -212,16 +212,16 @@ export default function CorrosionRateCalculator() {
     }
   };
 
-  const generateChartData = () => {
+  const chartData = useMemo(() => {
     if (!result) return [];
 
-    const chartData = [];
+    const data = [];
 
     if (measurements.length >= 2) {
       const sortedMeasurements = [...measurements].sort((a, b) => a.years - b.years);
       
       for (const m of sortedMeasurements) {
-        chartData.push({
+        data.push({
           year: m.years,
           actual: m.thickness,
           predicted: null
@@ -235,7 +235,7 @@ export default function CorrosionRateCalculator() {
         const futureYear = lastMeasurement.years + deltaYear;
         const predictedThickness = lastMeasurement.thickness - result.corrosionRate * deltaYear;
         
-        chartData.push({
+        data.push({
           year: futureYear,
           actual: null,
           predicted: Math.max(0, predictedThickness)
@@ -245,13 +245,13 @@ export default function CorrosionRateCalculator() {
       const s0 = parseFloat(initialThickness);
       const years = parseFloat(operatingYears);
       
-      chartData.push({
+      data.push({
         year: 0,
         actual: s0,
         predicted: null
       });
       
-      chartData.push({
+      data.push({
         year: years,
         actual: parseFloat(currentThickness),
         predicted: null
@@ -262,7 +262,7 @@ export default function CorrosionRateCalculator() {
         const deltaYear = futureYear - years;
         const predictedThickness = parseFloat(currentThickness) - result.corrosionRate * deltaYear;
         
-        chartData.push({
+        data.push({
           year: futureYear,
           actual: null,
           predicted: Math.max(0, predictedThickness)
@@ -270,13 +270,14 @@ export default function CorrosionRateCalculator() {
       }
     }
 
-    return chartData;
-  };
+    return data;
+  }, [result, measurements, initialThickness, currentThickness, operatingYears]);
 
   const exportToPDF = async () => {
     if (!result) return;
 
-    const pdf = new jsPDF('p', 'mm', 'a4');
+    try {
+      const pdf = new jsPDF('p', 'mm', 'a4');
     const pageWidth = pdf.internal.pageSize.getWidth();
     const margin = 15;
     let yPosition = 20;
@@ -436,7 +437,10 @@ export default function CorrosionRateCalculator() {
     yPosition += 4;
     pdf.text('Рекомендуется проводить УЗК-контроль в соответствии с графиком', margin, yPosition);
 
-    pdf.save(`corrosion-report-${new Date().toISOString().split('T')[0]}.pdf`);
+      pdf.save(`corrosion-report-${new Date().toISOString().split('T')[0]}.pdf`);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+    }
   };
 
   return (
@@ -627,7 +631,7 @@ export default function CorrosionRateCalculator() {
                   График изменения толщины
                 </h3>
                 <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={generateChartData()} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                  <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                     <XAxis 
                       dataKey="year" 
