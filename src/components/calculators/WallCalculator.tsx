@@ -521,8 +521,9 @@ export default function WallCalculator({
         </Card>
       )}
 
-      <div style={{ position: 'absolute', left: '-9999px' }}>
-        <div id="pdf-report-content" ref={reportRef} style={{ width: '210mm', padding: '20mm', backgroundColor: 'white' }}>
+      {result !== null && (
+        <div style={{ position: 'absolute', left: '-9999px' }}>
+          <div id="pdf-report-content" ref={reportRef} style={{ width: '210mm', padding: '20mm', backgroundColor: 'white' }}>
           <div style={{ textAlign: 'center', marginBottom: '30px' }}>
             <h1 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '10px' }}>РАСЧЕТНЫЙ ОТЧЕТ</h1>
             <h2 style={{ fontSize: '18px', marginBottom: '5px' }}>Расчет цилиндрических обечаек</h2>
@@ -607,7 +608,8 @@ export default function WallCalculator({
             </p>
           </div>
         </div>
-      </div>
+        </div>
+      )}
 
       {result !== null && diameter && calcPressure && (
         <VesselVisualization2D 
