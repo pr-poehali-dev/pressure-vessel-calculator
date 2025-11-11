@@ -192,7 +192,7 @@ export default function CorrosionResultsDisplay({
                   </div>
                 </div>
                 <div>
-                  <div className="text-sm text-red-600">Достижение отбраковки</div>
+                  <div className="text-sm text-red-600">Срок до отбраковки</div>
                   <div className="text-2xl font-bold text-red-900">
                     {result.yearsToRejection !== undefined && result.yearsToRejection > 0 
                       ? `${result.yearsToRejection.toFixed(1)} лет`
