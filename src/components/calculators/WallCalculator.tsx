@@ -32,7 +32,10 @@ interface WallCalculatorProps {
   actualThickness: string;
   setActualThickness: (val: string) => void;
   result: number | null;
-  calcPressure: number | null;
+  calcPressure: string;
+  setCalcPressure: (val: string) => void;
+  allowableStress20: number | null;
+  allowablePressure: number | null;
   calculateThickness: () => void;
 }
 
@@ -57,6 +60,9 @@ export default function WallCalculator({
   setActualThickness,
   result,
   calcPressure,
+  setCalcPressure,
+  allowableStress20,
+  allowablePressure,
   calculateThickness
 }: WallCalculatorProps) {
   const reportRef = useRef<HTMLDivElement>(null);
@@ -100,8 +106,132 @@ export default function WallCalculator({
   const exportToWord = async () => {
     if (result === null) return;
 
-    const calcPressure = parseFloat(pressure) * 1.1;
+    const calcPressureValue = parseFloat(calcPressure);
     const allowableStress = getAllowableStress(material, parseFloat(temperature));
+
+    const tableRows = [
+      new TableRow({
+        children: [
+          new TableCell({
+            children: [new Paragraph('Внутренний диаметр (D):')],
+            width: { size: 60, type: WidthType.PERCENTAGE }
+          }),
+          new TableCell({
+            children: [new Paragraph({ text: `${diameter} мм`, bold: true })],
+            width: { size: 40, type: WidthType.PERCENTAGE }
+          })
+        ]
+      }),
+      new TableRow({
+        children: [
+          new TableCell({ children: [new Paragraph('Рабочее давление:')]}),
+          new TableCell({ children: [new Paragraph({ text: `${pressure} МПа`, bold: true })]})
+        ]
+      }),
+      new TableRow({
+        children: [
+          new TableCell({ children: [new Paragraph('Расчетное давление (P):')]}),
+          new TableCell({ children: [new Paragraph({ text: `${calcPressure} МПа`, bold: true })]})
+        ]
+      }),
+      new TableRow({
+        children: [
+          new TableCell({ children: [new Paragraph('Температура стенки (T):')]}),
+          new TableCell({ children: [new Paragraph({ text: `${temperature} °C`, bold: true })]})
+        ]
+      }),
+      new TableRow({
+        children: [
+          new TableCell({ children: [new Paragraph('Материал:')]}),
+          new TableCell({ children: [new Paragraph({ text: material, bold: true })]})
+        ]
+      }),
+      new TableRow({
+        children: [
+          new TableCell({ children: [new Paragraph('Коэффициент прочности сварного шва (φ):')]}),
+          new TableCell({ children: [new Paragraph({ text: weldCoeff, bold: true })]})
+        ]
+      }),
+      new TableRow({
+        children: [
+          new TableCell({ children: [new Paragraph('Допускаемое напряжение:')]}),
+          new TableCell({ children: [new Paragraph({ text: `${allowableStress.toFixed(1)} МПа`, bold: true })]})
+        ]
+      })
+    ];
+
+    const resultsParagraphs = [
+      new Paragraph({
+        text: 'РЕЗУЛЬТАТЫ РАСЧЕТА',
+        heading: HeadingLevel.HEADING_2,
+        spacing: { before: 400, after: 200 }
+      }),
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: 'Расчетная толщина стенки: ',
+            size: 28
+          }),
+          new TextRun({
+            text: `${result.toFixed(1)} мм`,
+            bold: true,
+            size: 32,
+            color: '2563EB'
+          })
+        ],
+        spacing: { after: 200 }
+      })
+    ];
+
+    if (allowableStress20 !== null) {
+      resultsParagraphs.push(
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: 'Допускаемое напряжение при 20°C: ',
+              size: 24
+            }),
+            new TextRun({
+              text: `${allowableStress20.toFixed(1)} МПа`,
+              bold: true,
+              size: 24
+            })
+          ],
+          spacing: { after: 200 }
+        })
+      );
+    }
+
+    if (allowablePressure !== null) {
+      resultsParagraphs.push(
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: 'Допускаемое внутреннее избыточное давление: ',
+              size: 28
+            }),
+            new TextRun({
+              text: `${allowablePressure.toFixed(2)} МПа`,
+              bold: true,
+              size: 32,
+              color: '2563EB'
+            })
+          ],
+          spacing: { after: 100 }
+        }),
+        new Paragraph({
+          text: `ГОСТ 34233.2-2017`,
+          spacing: { after: 200 }
+        })
+      );
+    }
+
+    resultsParagraphs.push(
+      new Paragraph({
+        text: `Норматив: ГОСТ 34233.2-2017, раздел 5`,
+        spacing: { after: 400 }
+      })
+    );
 
     const doc = new Document({
       sections: [{
@@ -136,75 +266,9 @@ export default function WallCalculator({
           }),
           new Table({
             width: { size: 100, type: WidthType.PERCENTAGE },
-            rows: [
-              new TableRow({
-                children: [
-                  new TableCell({
-                    children: [new Paragraph('Внутренний диаметр (D):')],
-                    width: { size: 60, type: WidthType.PERCENTAGE }
-                  }),
-                  new TableCell({
-                    children: [new Paragraph({ text: `${diameter} мм`, bold: true })],
-                    width: { size: 40, type: WidthType.PERCENTAGE }
-                  })
-                ]
-              }),
-              new TableRow({
-                children: [
-                  new TableCell({ children: [new Paragraph('Расчетное давление (P):')]}),
-                  new TableCell({ children: [new Paragraph({ text: `${pressure} МПа`, bold: true })]})
-                ]
-              }),
-              new TableRow({
-                children: [
-                  new TableCell({ children: [new Paragraph('Температура стенки (T):')]}),
-                  new TableCell({ children: [new Paragraph({ text: `${temperature} °C`, bold: true })]})
-                ]
-              }),
-              new TableRow({
-                children: [
-                  new TableCell({ children: [new Paragraph('Материал:')]}),
-                  new TableCell({ children: [new Paragraph({ text: material, bold: true })]})
-                ]
-              }),
-              new TableRow({
-                children: [
-                  new TableCell({ children: [new Paragraph('Коэффициент прочности сварного шва (φ):')]}),
-                  new TableCell({ children: [new Paragraph({ text: weldCoeff, bold: true })]})
-                ]
-              }),
-              new TableRow({
-                children: [
-                  new TableCell({ children: [new Paragraph('Допускаемое напряжение:')]}),
-                  new TableCell({ children: [new Paragraph({ text: `${allowableStress.toFixed(1)} МПа`, bold: true })]})
-                ]
-              })
-            ]
+            rows: tableRows
           }),
-          new Paragraph({
-            text: 'РЕЗУЛЬТАТЫ РАСЧЕТА',
-            heading: HeadingLevel.HEADING_2,
-            spacing: { before: 400, after: 200 }
-          }),
-          new Paragraph({
-            children: [
-              new TextRun({
-                text: 'Расчетная толщина стенки: ',
-                size: 28
-              }),
-              new TextRun({
-                text: `${result.toFixed(1)} мм`,
-                bold: true,
-                size: 32,
-                color: '2563EB'
-              })
-            ],
-            spacing: { after: 200 }
-          }),
-          new Paragraph({
-            text: `Норматив: ГОСТ 34233.2-2017, раздел 5`,
-            spacing: { after: 400 }
-          }),
+          ...resultsParagraphs,
           new Paragraph({
             text: 'РЕКОМЕНДАЦИЯ',
             heading: HeadingLevel.HEADING_3,
@@ -240,350 +304,315 @@ export default function WallCalculator({
             <Icon name="Calculator" size={24} className="text-blue-600" />
             Расчет цилиндрических обечаек
           </CardTitle>
-          <CardDescription>По ГОСТ 34233.2-2017, раздел 5</CardDescription>
+          <CardDescription>
+            По ГОСТ 34233.2-2017, раздел 5
+          </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="vesselName" className="font-mono text-xs text-slate-600">Наименование сосуда</Label>
-                <Input
-                  id="vesselName"
-                  type="text"
-                  placeholder="Например: Реактор Р-101"
-                  value={vesselName}
-                  onChange={(e) => setVesselName(e.target.value)}
-                  className="mt-1.5 font-mono"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="diameter" className="font-mono text-xs text-slate-600">Внутренний диаметр, мм</Label>
-                <Input
-                  id="diameter"
-                  type="number"
-                  placeholder="Введите диаметр"
-                  value={diameter}
-                  onChange={(e) => setDiameter(e.target.value)}
-                  className="mt-1.5 font-mono"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="pressure" className="font-mono text-xs text-slate-600">Рабочее давление, МПа</Label>
-                <Input
-                  id="pressure"
-                  type="number"
-                  step="0.1"
-                  placeholder="Введите давление"
-                  value={pressure}
-                  onChange={(e) => setPressure(e.target.value)}
-                  className="mt-1.5 font-mono"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="temperature" className="font-mono text-xs text-slate-600">Расчетная температура, °C</Label>
-                <Input
-                  id="temperature"
-                  type="number"
-                  placeholder="Введите температуру"
-                  value={temperature}
-                  onChange={(e) => setTemperature(e.target.value)}
-                  className="mt-1.5 font-mono"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="material" className="font-mono text-xs text-slate-600">Материал сосуда</Label>
-                <Select value={material} onValueChange={setMaterial}>
-                  <SelectTrigger className="mt-1.5 font-mono">
-                    <SelectValue placeholder="Выберите материал" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {materials.map((m) => (
-                      <SelectItem key={m.name} value={m.name} className="font-mono">
-                        {m.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label htmlFor="weld" className="font-mono text-xs text-slate-600">Коэффициент прочности сварного шва</Label>
-                <Select value={weldCoeff} onValueChange={setWeldCoeff}>
-                  <SelectTrigger className="mt-1.5 font-mono">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="1.0" className="font-mono">1.0 (100% контроль)</SelectItem>
-                    <SelectItem value="0.95" className="font-mono">0.95 (выборочный)</SelectItem>
-                    <SelectItem value="0.9" className="font-mono">0.9 (без контроля)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <Separator />
-
-              <div>
-                <Label htmlFor="corrosion" className="font-mono text-xs text-slate-600">Прибавка на коррозию, мм</Label>
-                <Input
-                  id="corrosion"
-                  type="number"
-                  step="0.1"
-                  placeholder="Введите прибавку"
-                  value={corrosionAllowance}
-                  onChange={(e) => setCorrosionAllowance(e.target.value)}
-                  className="mt-1.5 font-mono"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="executive" className="font-mono text-xs text-slate-600">Исполнительная толщина, мм</Label>
-                <Input
-                  id="executive"
-                  type="number"
-                  step="0.1"
-                  placeholder="По чертежу"
-                  value={executiveThickness}
-                  onChange={(e) => setExecutiveThickness(e.target.value)}
-                  className="mt-1.5 font-mono"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="actual" className="font-mono text-xs text-slate-600">Фактическая толщина, мм</Label>
-                <Input
-                  id="actual"
-                  type="number"
-                  step="0.1"
-                  placeholder="Замеренная"
-                  value={actualThickness}
-                  onChange={(e) => setActualThickness(e.target.value)}
-                  className="mt-1.5 font-mono"
-                />
-              </div>
-
-              <Button onClick={calculateThickness} className="w-full bg-blue-600 hover:bg-blue-700" size="lg">
-                <Icon name="Play" size={18} className="mr-2" />
-                Рассчитать
-              </Button>
-              
-              {result !== null && (
-                <div className="grid grid-cols-2 gap-2">
-                  <Button onClick={exportToPDF} variant="outline" size="lg" className="w-full">
-                    <Icon name="FileDown" size={18} className="mr-2" />
-                    PDF
-                  </Button>
-                  <Button onClick={exportToWord} variant="outline" size="lg" className="w-full">
-                    <Icon name="FileText" size={18} className="mr-2" />
-                    Word
-                  </Button>
-                </div>
-              )}
+        <CardContent className="space-y-4">
+          <div className="grid gap-4">
+            <div>
+              <Label htmlFor="vesselName">Название аппарата</Label>
+              <Input
+                id="vesselName"
+                type="text"
+                placeholder="Введите название аппарата"
+                value={vesselName}
+                onChange={(e) => setVesselName(e.target.value)}
+              />
             </div>
 
-            <div className="space-y-4">
-              {result !== null && (
-                <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-white animate-scale-in">
-                  <CardHeader>
-                    <CardTitle className="text-lg">Результаты расчета</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="p-6 bg-white rounded-lg border-2 border-blue-500">
-                      <div className="text-xs font-mono text-slate-500 mb-2">Расчетная толщина стенки</div>
-                      <div className="text-4xl font-bold text-blue-600 font-mono">
-                        {result.toFixed(1)} <span className="text-2xl text-slate-600">мм</span>
-                      </div>
-                    </div>
+            <div>
+              <Label htmlFor="diameter">Внутренний диаметр, мм</Label>
+              <Input
+                id="diameter"
+                type="number"
+                placeholder="Введите внутренний диаметр"
+                value={diameter}
+                onChange={(e) => setDiameter(e.target.value)}
+              />
+            </div>
 
-                    <Separator />
+            <div>
+              <Label htmlFor="pressure">Рабочее давление, МПа</Label>
+              <Input
+                id="pressure"
+                type="number"
+                step="0.1"
+                placeholder="Введите рабочее давление"
+                value={pressure}
+                onChange={(e) => setPressure(e.target.value)}
+              />
+            </div>
 
-                    <div className="space-y-2 text-sm">
-                      {vesselName && (
-                        <div className="flex justify-between font-mono">
-                          <span className="text-slate-600">Наименование:</span>
-                          <span className="font-semibold">{vesselName}</span>
-                        </div>
-                      )}
-                      <div className="flex justify-between font-mono">
-                        <span className="text-slate-600">Внутренний диаметр:</span>
-                        <span className="font-semibold">{diameter} мм</span>
-                      </div>
-                      <div className="flex justify-between font-mono">
-                        <span className="text-slate-600">Рабочее давление:</span>
-                        <span className="font-semibold">{pressure} МПа</span>
-                      </div>
-                      <div className="flex justify-between font-mono">
-                        <span className="text-slate-600">Расчётное давление:</span>
-                        <span className="font-semibold text-blue-600">{calcPressure?.toFixed(2)} МПа</span>
-                      </div>
-                      <div className="flex justify-between font-mono">
-                        <span className="text-slate-600">Температура:</span>
-                        <span className="font-semibold">{temperature} °C</span>
-                      </div>
-                      <div className="flex justify-between font-mono">
-                        <span className="text-slate-600">Марка стали:</span>
-                        <span className="font-semibold">{material}</span>
-                      </div>
-                      <div className="flex justify-between font-mono">
-                        <span className="text-slate-600">Коэфф. сварки:</span>
-                        <span className="font-semibold">{weldCoeff}</span>
-                      </div>
-                    </div>
+            <div>
+              <Label htmlFor="calcPressure">Расчетное давление, МПа</Label>
+              <Input
+                id="calcPressure"
+                type="number"
+                step="0.1"
+                placeholder="Введите расчетное давление"
+                value={calcPressure}
+                onChange={(e) => setCalcPressure(e.target.value)}
+              />
+            </div>
 
-                    <Separator />
+            <div>
+              <Label htmlFor="temperature">Расчетная температура стенки, °C</Label>
+              <Input
+                id="temperature"
+                type="number"
+                placeholder="Введите температуру"
+                value={temperature}
+                onChange={(e) => setTemperature(e.target.value)}
+              />
+            </div>
 
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between font-mono">
-                        <span className="text-slate-600">Расчётная толщина:</span>
-                        <span className="font-semibold text-blue-600">{result.toFixed(1)} мм</span>
-                      </div>
-                      <div className="flex justify-between font-mono">
-                        <span className="text-slate-600">Прибавка на коррозию:</span>
-                        <span className="font-semibold">{corrosionAllowance || '-'} мм</span>
-                      </div>
-                      {executiveThickness && (
-                        <div className="flex justify-between font-mono">
-                          <span className="text-slate-600">Исполнительная толщина:</span>
-                          <span className="font-semibold">{executiveThickness} мм</span>
-                        </div>
-                      )}
-                      {actualThickness && (
-                        <div className="flex justify-between font-mono">
-                          <span className="text-slate-600">Фактическая толщина:</span>
-                          <span className="font-semibold">{actualThickness} мм</span>
-                        </div>
-                      )}
-                    </div>
+            <div>
+              <Label htmlFor="material">Материал</Label>
+              <Select value={material} onValueChange={setMaterial}>
+                <SelectTrigger id="material">
+                  <SelectValue placeholder="Выберите материал" />
+                </SelectTrigger>
+                <SelectContent>
+                  {materials.map((mat) => (
+                    <SelectItem key={mat} value={mat}>
+                      {mat}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-                    <Separator />
+            <div>
+              <Label htmlFor="weldCoeff">Коэффициент прочности сварного шва</Label>
+              <Select value={weldCoeff} onValueChange={setWeldCoeff}>
+                <SelectTrigger id="weldCoeff">
+                  <SelectValue placeholder="Выберите коэффициент" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1.0">1.0 - Сплошной контроль</SelectItem>
+                  <SelectItem value="0.9">0.9 - Выборочный контроль</SelectItem>
+                  <SelectItem value="0.8">0.8 - Без контроля</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-                    <div className="p-3 bg-amber-50 border border-amber-200 rounded">
-                      <div className="flex items-start gap-2">
-                        <Icon name="AlertTriangle" size={18} className="text-amber-600 mt-0.5" />
-                        <div className="text-xs text-amber-800">
-                          <strong>По РД 03-421-01:</strong> Округлите расчётную толщину до стандартной толщины листа
-                        </div>
-                      </div>
-                    </div>
+            <div>
+              <Label htmlFor="corrosionAllowance">Прибавка на коррозию, мм</Label>
+              <Input
+                id="corrosionAllowance"
+                type="number"
+                step="0.1"
+                placeholder="Введите прибавку на коррозию"
+                value={corrosionAllowance}
+                onChange={(e) => setCorrosionAllowance(e.target.value)}
+              />
+            </div>
 
-                    <div id="report-content" className="hidden">
-                      <h1>Отчет расчета сосуда под давлением</h1>
-                      <p><strong>Дата:</strong> {new Date().toLocaleDateString('ru-RU')}</p>
-                      <h2>Исходные данные:</h2>
-                      <table>
-                        <tr><td className="label">Внутренний диаметр:</td><td className="value">{diameter} мм</td></tr>
-                        <tr><td className="label">Рабочее давление:</td><td className="value">{pressure} МПа</td></tr>
-                        <tr><td className="label">Материал:</td><td className="value">{material}</td></tr>
-                        <tr><td className="label">Коэффициент сварки:</td><td className="value">{weldCoeff}</td></tr>
-                      </table>
-                      <h2>Результаты расчета:</h2>
-                      <table>
-                        <tr><td className="label">Расчетная толщина стенки:</td><td className="value">{result.toFixed(1)} мм</td></tr>
-                        <tr><td className="label">Норматив:</td><td className="value">ГОСТ 34233.2-2017</td></tr>
-                      </table>
-                      <p style={{marginTop: '20px', color: '#64748B', fontSize: '12px'}}>Расчеты носят справочный характер</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
+            <div>
+              <Label htmlFor="executiveThickness">Исполнительная толщина стенки, мм</Label>
+              <Input
+                id="executiveThickness"
+                type="number"
+                step="0.1"
+                placeholder="Введите исполнительную толщину"
+                value={executiveThickness}
+                onChange={(e) => setExecutiveThickness(e.target.value)}
+              />
+            </div>
 
-              {result !== null && diameter && pressure && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-sm">Визуализация сосуда</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div ref={reportRef}>
-                      <VesselVisualization2D
-                        diameter={parseFloat(diameter)}
-                        thickness={result}
-                        pressure={parseFloat(pressure)}
-                        length={2000}
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {material && temperature && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-sm">Свойства материала</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-2 text-sm font-mono">
-                    {materials.find(m => m.name === material) && (
-                      <>
-                        <div className="flex justify-between">
-                          <span className="text-slate-600">Допускаемое напряжение:</span>
-                          <span className="font-semibold">{getAllowableStress(material, parseFloat(temperature)).toFixed(1)} МПа</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-slate-600">При температуре:</span>
-                          <span className="font-semibold">{temperature} °C</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-slate-600">Модуль упругости:</span>
-                          <span className="font-semibold">{materials.find(m => m.name === material)?.youngModulus.toLocaleString()} МПа</span>
-                        </div>
-                      </>
-                    )}
-                  </CardContent>
-                </Card>
-              )}
+            <div>
+              <Label htmlFor="actualThickness">Фактическая толщина стенки, мм</Label>
+              <Input
+                id="actualThickness"
+                type="number"
+                step="0.1"
+                placeholder="Введите фактическую толщину"
+                value={actualThickness}
+                onChange={(e) => setActualThickness(e.target.value)}
+              />
             </div>
           </div>
+
+          <Button onClick={calculateThickness} className="w-full">
+            <Icon name="Calculator" size={20} className="mr-2" />
+            Рассчитать
+          </Button>
         </CardContent>
       </Card>
 
       {result !== null && (
-        <div id="pdf-report-content" className="fixed -left-[9999px] top-0 w-[794px] bg-white p-10">
-          <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold mb-2">Расчетный отчет</h1>
-            <h2 className="text-lg mb-1">Расчет цилиндрических обечаек</h2>
-            <p className="text-sm text-gray-600">По ГОСТ 34233.2-2017, раздел 5</p>
-            <p className="text-sm text-gray-500 mt-2">Дата: {new Date().toLocaleDateString('ru-RU')}</p>
+        <Card className="border-blue-200 bg-blue-50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-blue-900">
+              <Icon name="CheckCircle2" size={24} className="text-green-600" />
+              Результаты расчета
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <div className="text-sm text-slate-600">Расчетная толщина стенки</div>
+              <div className="text-4xl font-bold text-blue-600">{result.toFixed(1)} мм</div>
+              <div className="text-xs text-slate-500">По ГОСТ 34233.2-2017, раздел 5</div>
+            </div>
+
+            {allowableStress20 !== null && (
+              <div className="space-y-2">
+                <div className="text-sm text-slate-600">Допускаемое напряжение при 20°C</div>
+                <div className="text-2xl font-semibold text-slate-700">{allowableStress20.toFixed(1)} МПа</div>
+              </div>
+            )}
+
+            {allowablePressure !== null && (
+              <div className="space-y-2">
+                <div className="text-sm text-slate-600">Допускаемое внутреннее избыточное давление</div>
+                <div className="text-xs text-slate-500 mb-1">ГОСТ 34233.2-2017</div>
+                <div className="text-4xl font-bold text-blue-600">{allowablePressure.toFixed(2)} МПа</div>
+              </div>
+            )}
+
+            <Separator />
+
+            <div className="space-y-2 text-sm">
+              <div className="font-semibold text-slate-700">Формулы расчёта:</div>
+              <div className="bg-slate-50 p-3 rounded font-mono text-xs">
+                <div>s = (Pр × D) / (2 × [σ] × φ - Pр)</div>
+                <div className="text-slate-500 mt-1">где:</div>
+                <div className="text-slate-500">s - расчетная толщина стенки, мм</div>
+                <div className="text-slate-500">Pр - расчетное давление, МПа</div>
+                <div className="text-slate-500">D - внутренний диаметр, мм</div>
+                <div className="text-slate-500">[σ] - допускаемое напряжение, МПа</div>
+                <div className="text-slate-500">φ - коэффициент прочности сварного шва</div>
+              </div>
+              {allowablePressure !== null && (
+                <div className="bg-slate-50 p-3 rounded font-mono text-xs mt-2">
+                  <div>[P] = (2 × [σ] × φ × sэф) / (D + sэф)</div>
+                  <div className="text-slate-500 mt-1">где:</div>
+                  <div className="text-slate-500">[P] - допускаемое давление, МПа</div>
+                  <div className="text-slate-500">sэф = sисп - c (эффективная толщина)</div>
+                  <div className="text-slate-500">c - прибавка на коррозию, мм</div>
+                </div>
+              )}
+            </div>
+
+            <Separator />
+
+            <div className="flex gap-2">
+              <Button onClick={exportToPDF} variant="outline" className="flex-1">
+                <Icon name="FileText" size={20} className="mr-2" />
+                Экспорт в PDF
+              </Button>
+              <Button onClick={exportToWord} variant="outline" className="flex-1">
+                <Icon name="FileText" size={20} className="mr-2" />
+                Экспорт в Word
+              </Button>
+            </div>
+
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+              <div className="flex gap-2">
+                <Icon name="AlertCircle" size={20} className="text-amber-600 flex-shrink-0 mt-0.5" />
+                <div className="text-sm text-amber-800">
+                  <div className="font-semibold mb-1">Важное примечание:</div>
+                  <div>Добавьте припуск на коррозию (обычно 1-3 мм) и округлите до стандартной толщины листа по ГОСТ 19903</div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      <div style={{ position: 'absolute', left: '-9999px' }}>
+        <div id="pdf-report-content" ref={reportRef} style={{ width: '210mm', padding: '20mm', backgroundColor: 'white' }}>
+          <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+            <h1 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '10px' }}>РАСЧЕТНЫЙ ОТЧЕТ</h1>
+            <h2 style={{ fontSize: '18px', marginBottom: '5px' }}>Расчет цилиндрических обечаек</h2>
+            <p style={{ fontSize: '14px', color: '#666' }}>По ГОСТ 34233.2-2017, раздел 5</p>
+            <p style={{ fontSize: '12px', color: '#666', marginTop: '10px' }}>
+              Дата: {new Date().toLocaleDateString('ru-RU')}
+            </p>
           </div>
 
-          <div className="mb-6">
-            <h3 className="text-lg font-bold mb-3 border-b-2 border-gray-300 pb-1">Исходные данные:</h3>
-            <table className="w-full text-sm">
+          <div style={{ marginBottom: '30px' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '15px' }}>ИСХОДНЫЕ ДАННЫЕ</h3>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <tbody>
-                <tr className="border-b"><td className="py-2 text-gray-600">Внутренний диаметр (D):</td><td className="py-2 font-semibold text-right">{diameter} мм</td></tr>
-                <tr className="border-b"><td className="py-2 text-gray-600">Расчетное давление (P):</td><td className="py-2 font-semibold text-right">{pressure} МПа</td></tr>
-                <tr className="border-b"><td className="py-2 text-gray-600">Температура стенки (T):</td><td className="py-2 font-semibold text-right">{temperature} °C</td></tr>
-                <tr className="border-b"><td className="py-2 text-gray-600">Материал:</td><td className="py-2 font-semibold text-right">{material}</td></tr>
-                <tr className="border-b"><td className="py-2 text-gray-600">Коэффициент прочности сварного шва (φ):</td><td className="py-2 font-semibold text-right">{weldCoeff}</td></tr>
-                <tr className="border-b"><td className="py-2 text-gray-600">Допускаемое напряжение:</td><td className="py-2 font-semibold text-right">{getAllowableStress(material, parseFloat(temperature)).toFixed(1)} МПа</td></tr>
+                <tr style={{ borderBottom: '1px solid #ddd' }}>
+                  <td style={{ padding: '8px' }}>Внутренний диаметр (D):</td>
+                  <td style={{ padding: '8px', fontWeight: 'bold' }}>{diameter} мм</td>
+                </tr>
+                <tr style={{ borderBottom: '1px solid #ddd' }}>
+                  <td style={{ padding: '8px' }}>Рабочее давление:</td>
+                  <td style={{ padding: '8px', fontWeight: 'bold' }}>{pressure} МПа</td>
+                </tr>
+                <tr style={{ borderBottom: '1px solid #ddd' }}>
+                  <td style={{ padding: '8px' }}>Расчетное давление (P):</td>
+                  <td style={{ padding: '8px', fontWeight: 'bold' }}>{calcPressure} МПа</td>
+                </tr>
+                <tr style={{ borderBottom: '1px solid #ddd' }}>
+                  <td style={{ padding: '8px' }}>Температура стенки (T):</td>
+                  <td style={{ padding: '8px', fontWeight: 'bold' }}>{temperature} °C</td>
+                </tr>
+                <tr style={{ borderBottom: '1px solid #ddd' }}>
+                  <td style={{ padding: '8px' }}>Материал:</td>
+                  <td style={{ padding: '8px', fontWeight: 'bold' }}>{material}</td>
+                </tr>
+                <tr style={{ borderBottom: '1px solid #ddd' }}>
+                  <td style={{ padding: '8px' }}>Коэффициент прочности сварного шва (φ):</td>
+                  <td style={{ padding: '8px', fontWeight: 'bold' }}>{weldCoeff}</td>
+                </tr>
+                <tr style={{ borderBottom: '1px solid #ddd' }}>
+                  <td style={{ padding: '8px' }}>Допускаемое напряжение:</td>
+                  <td style={{ padding: '8px', fontWeight: 'bold' }}>
+                    {getAllowableStress(material, parseFloat(temperature)).toFixed(1)} МПа
+                  </td>
+                </tr>
               </tbody>
             </table>
           </div>
 
-          <div className="mb-6">
-            <h3 className="text-lg font-bold mb-3 border-b-2 border-gray-300 pb-1">Результаты расчета:</h3>
-            <div className="bg-blue-50 border-2 border-blue-500 rounded-lg p-4 text-center">
-              <p className="text-sm text-gray-600 mb-1">Расчетная толщина стенки</p>
-              <p className="text-3xl font-bold text-blue-600">{result.toFixed(1)} <span className="text-xl text-gray-600">мм</span></p>
-              <p className="text-xs text-gray-500 mt-2">Норматив: ГОСТ 34233.2-2017, раздел 5</p>
+          <div style={{ marginBottom: '30px' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '15px' }}>РЕЗУЛЬТАТЫ РАСЧЕТА</h3>
+            <div style={{ marginBottom: '15px' }}>
+              <p style={{ fontSize: '14px', marginBottom: '5px' }}>Расчетная толщина стенки:</p>
+              <p style={{ fontSize: '32px', fontWeight: 'bold', color: '#2563EB' }}>{result.toFixed(1)} мм</p>
             </div>
+            {allowableStress20 !== null && (
+              <div style={{ marginBottom: '15px' }}>
+                <p style={{ fontSize: '14px', marginBottom: '5px' }}>Допускаемое напряжение при 20°C:</p>
+                <p style={{ fontSize: '20px', fontWeight: 'bold' }}>{allowableStress20.toFixed(1)} МПа</p>
+              </div>
+            )}
+            {allowablePressure !== null && (
+              <div style={{ marginBottom: '15px' }}>
+                <p style={{ fontSize: '14px', marginBottom: '5px' }}>Допускаемое внутреннее избыточное давление:</p>
+                <p style={{ fontSize: '12px', color: '#666', marginBottom: '5px' }}>ГОСТ 34233.2-2017</p>
+                <p style={{ fontSize: '32px', fontWeight: 'bold', color: '#2563EB' }}>{allowablePressure.toFixed(2)} МПа</p>
+              </div>
+            )}
+            <p style={{ fontSize: '12px', color: '#666' }}>Норматив: ГОСТ 34233.2-2017, раздел 5</p>
           </div>
 
-          <div className="mb-6">
-            <h3 className="text-lg font-bold mb-3 border-b-2 border-gray-300 pb-1">Визуализация сосуда:</h3>
-            <VesselVisualization2D
-              diameter={parseFloat(diameter)}
-              thickness={result}
-              pressure={parseFloat(pressure)}
-              length={2000}
-            />
+          <div style={{ marginBottom: '20px' }}>
+            <h4 style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '10px' }}>РЕКОМЕНДАЦИЯ</h4>
+            <p style={{ fontSize: '12px' }}>
+              Добавьте припуск на коррозию (обычно 1-3 мм) и округлите до стандартной толщины листа
+            </p>
           </div>
 
-          <div className="text-center text-xs text-gray-500 mt-8 pt-4 border-t">
-            <p>Расчеты носят справочный характер</p>
+          <div style={{ textAlign: 'center', marginTop: '40px' }}>
+            <p style={{ fontSize: '10px', color: '#999', fontStyle: 'italic' }}>
+              Расчеты носят справочный характер
+            </p>
           </div>
         </div>
+      </div>
+
+      {result !== null && diameter && (
+        <VesselVisualization2D 
+          diameter={parseFloat(diameter)} 
+          thickness={result}
+          actualThickness={actualThickness ? parseFloat(actualThickness) : undefined}
+        />
       )}
     </div>
   );

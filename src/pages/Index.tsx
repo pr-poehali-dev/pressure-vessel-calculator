@@ -23,6 +23,7 @@ export default function Index() {
   const [vesselName, setVesselName] = useState('');
   const [diameter, setDiameter] = useState('');
   const [pressure, setPressure] = useState('');
+  const [calcPressureShell, setCalcPressureShell] = useState('');
   const [temperature, setTemperature] = useState('20');
   const [material, setMaterial] = useState('');
   const [weldCoeff, setWeldCoeff] = useState('1.0');
@@ -30,7 +31,8 @@ export default function Index() {
   const [shellExecutive, setShellExecutive] = useState('');
   const [shellActual, setShellActual] = useState('');
   const [result, setResult] = useState<number | null>(null);
-  const [calcPressure, setCalcPressure] = useState<number | null>(null);
+  const [allowableStress20, setAllowableStress20] = useState<number | null>(null);
+  const [allowablePressureShell, setAllowablePressureShell] = useState<number | null>(null);
   
   const [flangeDiameter, setFlangeDiameter] = useState('');
   const [flangeThickness, setFlangeThickness] = useState('');
@@ -41,14 +43,16 @@ export default function Index() {
   const [headVesselName, setHeadVesselName] = useState('');
   const [headDiameter, setHeadDiameter] = useState('');
   const [headPressure, setHeadPressure] = useState('');
+  const [headCalcPressure, setHeadCalcPressure] = useState('');
   const [headTemperature, setHeadTemperature] = useState('20');
   const [headMaterial, setHeadMaterial] = useState('');
   const [headType, setHeadType] = useState('elliptical');
+  const [headRadius, setHeadRadius] = useState('');
   const [headCorrosion, setHeadCorrosion] = useState('2.0');
   const [headExecutive, setHeadExecutive] = useState('');
   const [headActual, setHeadActual] = useState('');
   const [headResult, setHeadResult] = useState<number | null>(null);
-  const [headCalcPressure, setHeadCalcPressure] = useState<number | null>(null);
+  const [allowablePressureHead, setAllowablePressureHead] = useState<number | null>(null);
   
   const [supportType, setSupportType] = useState('saddle');
   const [vesselDiameter, setVesselDiameter] = useState('');
@@ -69,19 +73,30 @@ export default function Index() {
 
   const calculateThickness = () => {
     const D = parseFloat(diameter);
-    const P = parseFloat(pressure);
+    const Pc = parseFloat(calcPressureShell);
     const T = parseFloat(temperature);
     const phi = parseFloat(weldCoeff);
+    const s_exec = parseFloat(shellExecutive);
+    const c = parseFloat(shellCorrosion);
 
-    if (!D || !P || !material || !phi || isNaN(T)) return;
-
-    const calcP = P * 1.1;
-    setCalcPressure(calcP);
+    if (!D || !Pc || !material || !phi || isNaN(T)) return;
 
     const sigma = getAllowableStress(material, T);
-    const s = (calcP * D) / (2 * sigma * phi - calcP);
-    
+    const sigma20 = getAllowableStress(material, 20);
+    setAllowableStress20(sigma20);
+
+    // Расчетная толщина стенки
+    const s = (Pc * D) / (2 * sigma * phi - Pc);
     setResult(Math.ceil(s * 10) / 10);
+
+    // Допускаемое внутреннее избыточное давление (если заданы исполнительная толщина и прибавка)
+    if (s_exec && c) {
+      const s_eff = s_exec - c;
+      const P_allow = (2 * sigma * phi * s_eff) / (D + s_eff);
+      setAllowablePressureShell(P_allow);
+    } else {
+      setAllowablePressureShell(null);
+    }
   };
 
   const calculateAllowablePressure = () => {
@@ -118,31 +133,53 @@ export default function Index() {
 
   const calculateHead = () => {
     const D = parseFloat(headDiameter);
-    const P = parseFloat(headPressure);
+    const Pc = parseFloat(headCalcPressure);
     const T = parseFloat(headTemperature);
+    const R = parseFloat(headRadius);
+    const s_exec = parseFloat(headExecutive);
+    const c = parseFloat(headCorrosion);
 
-    if (!D || !P || !headMaterial || isNaN(T)) return;
-
-    const calcP = P * 1.1;
-    setHeadCalcPressure(calcP);
+    if (!D || !Pc || !headMaterial || isNaN(T)) return;
 
     const sigma = getAllowableStress(headMaterial, T);
     const phi = 1.0;
     let s = 0;
 
     if (headType === 'elliptical') {
-      s = (calcP * D) / (4 * sigma * phi - 0.4 * calcP);
+      s = (Pc * D) / (4 * sigma * phi - 0.4 * Pc);
     } else if (headType === 'hemispherical') {
-      s = (calcP * D) / (4 * sigma * phi - calcP);
+      s = (Pc * D) / (4 * sigma * phi - Pc);
     } else if (headType === 'torispherical') {
-      const R = D;
-      s = (calcP * R) / (2 * sigma * phi - 0.5 * calcP);
+      const Rc = R || D;
+      s = (Pc * Rc) / (2 * sigma * phi - 0.5 * Pc);
     } else {
       const K = 0.42;
-      s = D * Math.sqrt((K * calcP) / sigma);
+      s = D * Math.sqrt((K * Pc) / sigma);
     }
 
     setHeadResult(Math.ceil(s * 10) / 10);
+
+    // Допускаемое внутреннее избыточное давление (если заданы исполнительная толщина и прибавка)
+    if (s_exec && c) {
+      const s_eff = s_exec - c;
+      let P_allow = 0;
+      
+      if (headType === 'elliptical') {
+        P_allow = (4 * sigma * phi * s_eff) / (D + 0.4 * s_eff);
+      } else if (headType === 'hemispherical') {
+        P_allow = (4 * sigma * phi * s_eff) / (D + s_eff);
+      } else if (headType === 'torispherical') {
+        const Rc = R || D;
+        P_allow = (2 * sigma * phi * s_eff) / (Rc + 0.5 * s_eff);
+      } else {
+        const K = 0.42;
+        P_allow = (sigma * Math.pow(s_eff / D, 2)) / K;
+      }
+      
+      setAllowablePressureHead(P_allow);
+    } else {
+      setAllowablePressureHead(null);
+    }
   };
 
   const calculateSupport = () => {
@@ -282,6 +319,8 @@ export default function Index() {
             setDiameter={setDiameter}
             pressure={pressure}
             setPressure={setPressure}
+            calcPressure={calcPressureShell}
+            setCalcPressure={setCalcPressureShell}
             temperature={temperature}
             setTemperature={setTemperature}
             material={material}
@@ -295,7 +334,8 @@ export default function Index() {
             actualThickness={shellActual}
             setActualThickness={setShellActual}
             result={result}
-            calcPressure={calcPressure}
+            allowableStress20={allowableStress20}
+            allowablePressure={allowablePressureShell}
             calculateThickness={calculateThickness}
           />
         )}
@@ -308,20 +348,24 @@ export default function Index() {
             setHeadDiameter={setHeadDiameter}
             headPressure={headPressure}
             setHeadPressure={setHeadPressure}
+            calcPressure={headCalcPressure}
+            setCalcPressure={setHeadCalcPressure}
             headTemperature={headTemperature}
             setHeadTemperature={setHeadTemperature}
+            headRadius={headRadius}
+            setHeadRadius={setHeadRadius}
             corrosionAllowance={headCorrosion}
             setCorrosionAllowance={setHeadCorrosion}
             executiveThickness={headExecutive}
             setExecutiveThickness={setHeadExecutive}
             actualThickness={headActual}
             setActualThickness={setHeadActual}
-            calcPressure={headCalcPressure}
             headMaterial={headMaterial}
             setHeadMaterial={setHeadMaterial}
             headType={headType}
             setHeadType={setHeadType}
             headResult={headResult}
+            allowablePressure={allowablePressureHead}
             calculateHead={calculateHead}
           />
         )}

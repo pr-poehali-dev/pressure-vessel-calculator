@@ -27,7 +27,11 @@ interface HeadCalculatorProps {
   actualThickness: string;
   setActualThickness: (val: string) => void;
   headResult: number | null;
-  calcPressure: number | null;
+  calcPressure: string;
+  setCalcPressure: (val: string) => void;
+  headRadius: string;
+  setHeadRadius: (val: string) => void;
+  allowablePressure: number | null;
   calculateHead: () => void;
 }
 
@@ -52,6 +56,10 @@ export default function HeadCalculator({
   setActualThickness,
   headResult,
   calcPressure,
+  setCalcPressure,
+  headRadius,
+  setHeadRadius,
+  allowablePressure,
   calculateHead
 }: HeadCalculatorProps) {
   return (
@@ -107,6 +115,18 @@ export default function HeadCalculator({
               </div>
 
               <div>
+                <Label htmlFor="headRadius" className="font-mono text-xs text-slate-600">Радиус кривизны днища, мм</Label>
+                <Input
+                  id="headRadius"
+                  type="number"
+                  placeholder="Для торосферического"
+                  value={headRadius}
+                  onChange={(e) => setHeadRadius(e.target.value)}
+                  className="mt-1.5 font-mono"
+                />
+              </div>
+
+              <div>
                 <Label htmlFor="headPressure" className="font-mono text-xs text-slate-600">Рабочее давление, МПа</Label>
                 <Input
                   id="headPressure"
@@ -115,6 +135,19 @@ export default function HeadCalculator({
                   placeholder="Введите давление"
                   value={headPressure}
                   onChange={(e) => setHeadPressure(e.target.value)}
+                  className="mt-1.5 font-mono"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="calcPressure" className="font-mono text-xs text-slate-600">Расчетное давление, МПа</Label>
+                <Input
+                  id="calcPressure"
+                  type="number"
+                  step="0.1"
+                  placeholder="Введите расчетное давление"
+                  value={calcPressure}
+                  onChange={(e) => setCalcPressure(e.target.value)}
                   className="mt-1.5 font-mono"
                 />
               </div>
@@ -208,17 +241,71 @@ export default function HeadCalculator({
                       </div>
                     </div>
 
+                    {allowablePressure !== null && (
+                      <div className="p-6 bg-white rounded-lg border-2 border-blue-500">
+                        <div className="text-xs font-mono text-slate-500 mb-1">Допускаемое внутреннее избыточное давление</div>
+                        <div className="text-xs font-mono text-slate-400 mb-2">ГОСТ 34233.2-2017</div>
+                        <div className="text-4xl font-bold text-blue-600 font-mono">
+                          {allowablePressure.toFixed(2)} <span className="text-2xl text-slate-600">МПа</span>
+                        </div>
+                      </div>
+                    )}
+
+                    <Separator />
+
+                    <div className="space-y-2 text-sm">
+                      <div className="font-semibold text-slate-700">Формулы расчёта:</div>
+                      
+                      {headType === 'elliptical' && (
+                        <div className="bg-slate-50 p-3 rounded font-mono text-xs">
+                          <div>s = (Pр × D) / (4 × [σ] × φ - 0.4 × Pр)</div>
+                          <div className="text-slate-500 mt-1">Эллиптическое днище (2:1)</div>
+                        </div>
+                      )}
+                      
+                      {headType === 'hemispherical' && (
+                        <div className="bg-slate-50 p-3 rounded font-mono text-xs">
+                          <div>s = (Pр × D) / (4 × [σ] × φ - Pр)</div>
+                          <div className="text-slate-500 mt-1">Полусферическое днище</div>
+                        </div>
+                      )}
+                      
+                      {headType === 'torispherical' && (
+                        <div className="bg-slate-50 p-3 rounded font-mono text-xs">
+                          <div>s = (Pр × R) / (2 × [σ] × φ - 0.5 × Pр)</div>
+                          <div className="text-slate-500 mt-1">Торосферическое днище</div>
+                        </div>
+                      )}
+                      
+                      {headType === 'flat' && (
+                        <div className="bg-slate-50 p-3 rounded font-mono text-xs">
+                          <div>s = D × √((K × Pр) / [σ])</div>
+                          <div className="text-slate-500 mt-1">Плоское днище, K = 0.42</div>
+                        </div>
+                      )}
+                      
+                      <div className="bg-slate-50 p-3 rounded font-mono text-xs">
+                        <div className="text-slate-500">где:</div>
+                        <div className="text-slate-500">s - расчетная толщина, мм</div>
+                        <div className="text-slate-500">Pр - расчетное давление, МПа</div>
+                        <div className="text-slate-500">D - внутренний диаметр, мм</div>
+                        <div className="text-slate-500">R - радиус кривизны, мм</div>
+                        <div className="text-slate-500">[σ] - допускаемое напряжение, МПа</div>
+                        <div className="text-slate-500">φ - коэффициент прочности (обычно 1.0)</div>
+                      </div>
+                    </div>
+
                     <Separator />
 
                     <div className="space-y-2 text-sm">
                       {vesselName && (
                         <div className="flex justify-between font-mono">
-                          <span className="text-slate-600">Наименование:</span>
+                          <span className="text-slate-600">Аппарат:</span>
                           <span className="font-semibold">{vesselName}</span>
                         </div>
                       )}
                       <div className="flex justify-between font-mono">
-                        <span className="text-slate-600">Тип днища:</span>
+                        <span className="text-slate-600">Тип:</span>
                         <span className="font-semibold">
                           {headType === 'elliptical' && 'Эллиптическое'}
                           {headType === 'hemispherical' && 'Полусферическое'}
@@ -227,71 +314,26 @@ export default function HeadCalculator({
                         </span>
                       </div>
                       <div className="flex justify-between font-mono">
-                        <span className="text-slate-600">Внутренний диаметр:</span>
+                        <span className="text-slate-600">Диаметр:</span>
                         <span className="font-semibold">{headDiameter} мм</span>
                       </div>
-                      <div className="flex justify-between font-mono">
-                        <span className="text-slate-600">Рабочее давление:</span>
-                        <span className="font-semibold">{headPressure} МПа</span>
-                      </div>
-                      <div className="flex justify-between font-mono">
-                        <span className="text-slate-600">Расчётное давление:</span>
-                        <span className="font-semibold text-blue-600">{calcPressure?.toFixed(2)} МПа</span>
-                      </div>
-                      <div className="flex justify-between font-mono">
-                        <span className="text-slate-600">Марка стали:</span>
-                        <span className="font-semibold">{headMaterial}</span>
-                      </div>
-                    </div>
-
-                    <Separator />
-
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between font-mono">
-                        <span className="text-slate-600">Расчётная толщина:</span>
-                        <span className="font-semibold text-blue-600">{headResult.toFixed(1)} мм</span>
-                      </div>
-                      <div className="flex justify-between font-mono">
-                        <span className="text-slate-600">Прибавка на коррозию:</span>
-                        <span className="font-semibold">{corrosionAllowance || '-'} мм</span>
-                      </div>
-                      {executiveThickness && (
+                      {headRadius && headType === 'torispherical' && (
                         <div className="flex justify-between font-mono">
-                          <span className="text-slate-600">Исполнительная толщина:</span>
-                          <span className="font-semibold">{executiveThickness} мм</span>
+                          <span className="text-slate-600">Радиус:</span>
+                          <span className="font-semibold">{headRadius} мм</span>
                         </div>
                       )}
-                      {actualThickness && (
-                        <div className="flex justify-between font-mono">
-                          <span className="text-slate-600">Фактическая толщина:</span>
-                          <span className="font-semibold">{actualThickness} мм</span>
-                        </div>
-                      )}
-                    </div>
-
-                    <Separator />
-
-                    <div className="p-3 bg-blue-50 border border-blue-200 rounded">
-                      <div className="text-xs text-blue-800 space-y-1">
-                        <div><strong>Формула (ГОСТ 34233.2-2017):</strong></div>
-                        {headType === 'elliptical' && <div className="font-mono">s = (P × D) / (4 × [σ] × φ - 0.4 × P)</div>}
-                        {headType === 'hemispherical' && <div className="font-mono">s = (P × D) / (4 × [σ] × φ - P)</div>}
-                        {headType === 'torispherical' && <div className="font-mono">s = (P × R) / (2 × [σ] × φ - 0.5 × P)</div>}
-                        {headType === 'flat' && <div className="font-mono">s = D × √(K × P / [σ])</div>}
+                      <div className="flex justify-between font-mono">
+                        <span className="text-slate-600">Давление:</span>
+                        <span className="font-semibold">{calcPressure || headPressure} МПа</span>
                       </div>
-                    </div>
-
-                    <div className="p-3 bg-amber-50 border border-amber-200 rounded">
-                      <div className="flex items-start gap-2">
-                        <Icon name="Info" size={18} className="text-amber-600 mt-0.5" />
-                        <div className="text-xs text-amber-800">
-                          <strong>По РД 03-421-01:</strong>
-                          <ul className="mt-1 space-y-1 ml-2">
-                            <li>• Округлите расчётную толщину до стандартной</li>
-                            <li>• Для эллиптических: H = 0.25 × D</li>
-                            <li>• Для торосферических: R = D, r = 0.1 × D</li>
-                          </ul>
-                        </div>
+                      <div className="flex justify-between font-mono">
+                        <span className="text-slate-600">Температура:</span>
+                        <span className="font-semibold">{headTemperature} °C</span>
+                      </div>
+                      <div className="flex justify-between font-mono">
+                        <span className="text-slate-600">Материал:</span>
+                        <span className="font-semibold text-xs">{headMaterial}</span>
                       </div>
                     </div>
                   </CardContent>
