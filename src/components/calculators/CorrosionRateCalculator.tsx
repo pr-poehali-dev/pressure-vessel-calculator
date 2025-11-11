@@ -47,7 +47,7 @@ export default function CorrosionRateCalculator() {
     };
 
     let yearsToRejection: number | undefined = undefined;
-    if (sRej && corrosionRate > 0) {
+    if (sRej && totalLoss > 0 && corrosionRate > 0) {
       if (s1 <= sRej) {
         yearsToRejection = -1;
       } else {
@@ -168,7 +168,7 @@ export default function CorrosionRateCalculator() {
     };
 
     let yearsToRejection: number | undefined = undefined;
-    if (sRej && currentRate > 0) {
+    if (sRej && totalLoss > 0 && currentRate > 0) {
       if (lastThickness <= sRej) {
         yearsToRejection = -1;
       } else {
