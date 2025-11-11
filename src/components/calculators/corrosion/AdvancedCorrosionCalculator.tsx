@@ -19,6 +19,8 @@ interface AdvancedCorrosionCalculatorProps {
   setNewMeasurementThickness: (value: string) => void;
   newMeasurementYears: string;
   setNewMeasurementYears: (value: string) => void;
+  initialThickness: string;
+  setInitialThickness: (value: string) => void;
   rejectionThickness: string;
   setRejectionThickness: (value: string) => void;
   commissioningDate: string;
@@ -36,6 +38,8 @@ export default function AdvancedCorrosionCalculator({
   setNewMeasurementThickness,
   newMeasurementYears,
   setNewMeasurementYears,
+  initialThickness,
+  setInitialThickness,
   rejectionThickness,
   setRejectionThickness,
   commissioningDate,
@@ -56,14 +60,28 @@ export default function AdvancedCorrosionCalculator({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="advancedCommissioningDate">Дата ввода в эксплуатацию</Label>
-          <Input
-            id="advancedCommissioningDate"
-            type="date"
-            value={commissioningDate}
-            onChange={(e) => setCommissioningDate(e.target.value)}
-          />
+        <div className="grid sm:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="advancedCommissioningDate">Дата ввода в эксплуатацию</Label>
+            <Input
+              id="advancedCommissioningDate"
+              type="date"
+              value={commissioningDate}
+              onChange={(e) => setCommissioningDate(e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="advancedInitialThickness">Начальная толщина, мм</Label>
+            <Input
+              id="advancedInitialThickness"
+              type="number"
+              step="0.1"
+              placeholder="10.0"
+              value={initialThickness}
+              onChange={(e) => setInitialThickness(e.target.value)}
+            />
+          </div>
         </div>
         
         <div className="p-3 bg-blue-50 rounded-lg mb-3 text-sm text-slate-700">

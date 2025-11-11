@@ -12,6 +12,7 @@ export default function CorrosionRateCalculator() {
   const [operatingYears, setOperatingYears] = useState('');
   const [rejectionThickness, setRejectionThickness] = useState('');
   const [commissioningDate, setCommissioningDate] = useState('');
+  const [advancedInitialThickness, setAdvancedInitialThickness] = useState('');
   const [measurements, setMeasurements] = useState<Measurement[]>([]);
   const [newMeasurementDate, setNewMeasurementDate] = useState('');
   const [newMeasurementThickness, setNewMeasurementThickness] = useState('');
@@ -108,9 +109,16 @@ export default function CorrosionRateCalculator() {
 
     const sortedMeasurements = [...measurements].sort((a, b) => a.years - b.years);
     const sRej = parseFloat(rejectionThickness);
+    const s0 = parseFloat(advancedInitialThickness);
     
-    const totalLoss = sortedMeasurements[0].thickness - sortedMeasurements[sortedMeasurements.length - 1].thickness;
-    const totalTime = sortedMeasurements[sortedMeasurements.length - 1].years - sortedMeasurements[0].years;
+    const totalLoss = s0 
+      ? s0 - sortedMeasurements[sortedMeasurements.length - 1].thickness
+      : sortedMeasurements[0].thickness - sortedMeasurements[sortedMeasurements.length - 1].thickness;
+    
+    const totalTime = s0
+      ? sortedMeasurements[sortedMeasurements.length - 1].years
+      : sortedMeasurements[sortedMeasurements.length - 1].years - sortedMeasurements[0].years;
+    
     const averageRate = totalLoss / totalTime;
 
     const rates: number[] = [];
@@ -223,6 +231,16 @@ export default function CorrosionRateCalculator() {
 
     if (measurements.length >= 2) {
       const sortedMeasurements = [...measurements].sort((a, b) => a.years - b.years);
+      const s0 = parseFloat(advancedInitialThickness);
+      
+      if (s0) {
+        data.push({
+          year: 0,
+          actual: s0,
+          predicted: null,
+          rejection: rejThickness || null
+        });
+      }
       
       for (const m of sortedMeasurements) {
         data.push({
@@ -280,7 +298,7 @@ export default function CorrosionRateCalculator() {
     }
 
     return data;
-  }, [result, measurements, initialThickness, currentThickness, operatingYears, rejectionThickness]);
+  }, [result, measurements, initialThickness, currentThickness, operatingYears, rejectionThickness, advancedInitialThickness]);
 
   const exportToPDF = async () => {
     if (!result || !pdfContentRef.current) return;
@@ -347,6 +365,8 @@ export default function CorrosionRateCalculator() {
           setNewMeasurementThickness={setNewMeasurementThickness}
           newMeasurementYears={newMeasurementYears}
           setNewMeasurementYears={setNewMeasurementYears}
+          initialThickness={advancedInitialThickness}
+          setInitialThickness={setAdvancedInitialThickness}
           rejectionThickness={rejectionThickness}
           setRejectionThickness={setRejectionThickness}
           commissioningDate={commissioningDate}
@@ -387,6 +407,18 @@ export default function CorrosionRateCalculator() {
                 <h2 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '12px' }}>
                   ПОКАЗАТЕЛИ КОРРОЗИИ
                 </h2>
+                
+                {(initialThickness || advancedInitialThickness) && (
+                  <div style={{ padding: '12px', backgroundColor: '#f0fdf4', borderRadius: '8px', marginBottom: '12px' }}>
+                    <div style={{ fontSize: '12px', color: '#16a34a', marginBottom: '4px' }}>
+                      Начальная толщина при вводе в эксплуатацию
+                    </div>
+                    <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#15803d' }}>
+                      {initialThickness || advancedInitialThickness} мм
+                    </div>
+                  </div>
+                )}
+                
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                   <div style={{ padding: '12px', backgroundColor: '#fff7ed', borderRadius: '8px' }}>
                     <div style={{ fontSize: '12px', color: '#ea580c', marginBottom: '4px' }}>
