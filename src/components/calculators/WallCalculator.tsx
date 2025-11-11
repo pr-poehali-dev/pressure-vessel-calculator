@@ -375,8 +375,8 @@ export default function WallCalculator({
                 </SelectTrigger>
                 <SelectContent>
                   {materials.map((mat) => (
-                    <SelectItem key={mat} value={mat}>
-                      {mat}
+                    <SelectItem key={mat.name} value={mat.name}>
+                      {mat.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
