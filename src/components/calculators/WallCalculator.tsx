@@ -560,12 +560,14 @@ export default function WallCalculator({
                   <td style={{ padding: '8px' }}>Коэффициент прочности сварного шва (φ):</td>
                   <td style={{ padding: '8px', fontWeight: 'bold' }}>{weldCoeff}</td>
                 </tr>
-                <tr style={{ borderBottom: '1px solid #ddd' }}>
-                  <td style={{ padding: '8px' }}>Допускаемое напряжение:</td>
-                  <td style={{ padding: '8px', fontWeight: 'bold' }}>
-                    {getAllowableStress(material, parseFloat(temperature)).toFixed(1)} МПа
-                  </td>
-                </tr>
+                {material && temperature && (
+                  <tr style={{ borderBottom: '1px solid #ddd' }}>
+                    <td style={{ padding: '8px' }}>Допускаемое напряжение:</td>
+                    <td style={{ padding: '8px', fontWeight: 'bold' }}>
+                      {getAllowableStress(material, parseFloat(temperature)).toFixed(1)} МПа
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -607,11 +609,11 @@ export default function WallCalculator({
         </div>
       </div>
 
-      {result !== null && diameter && (
+      {result !== null && diameter && calcPressure && (
         <VesselVisualization2D 
           diameter={parseFloat(diameter)} 
           thickness={result}
-          actualThickness={actualThickness ? parseFloat(actualThickness) : undefined}
+          pressure={parseFloat(calcPressure)}
         />
       )}
     </div>
