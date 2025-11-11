@@ -284,38 +284,174 @@ export default function CorrosionRateCalculator() {
     if (!result || !chartRef.current) return;
 
     try {
-      const element = chartRef.current.parentElement;
-      if (!element) return;
-
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        backgroundColor: '#ffffff',
-        logging: false,
-        useCORS: true,
-        allowTaint: true
-      });
-
-      const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      const margin = 10;
-      
-      const imgWidth = pageWidth - (margin * 2);
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      
-      let heightLeft = imgHeight;
-      let position = margin;
+      const margin = 15;
+      let yPosition = margin;
 
-      pdf.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight - (margin * 2);
+      // Заголовок
+      pdf.setFontSize(18);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('ОТЧЕТ ПО АНАЛИЗУ КОРРОЗИИ', pageWidth / 2, yPosition, { align: 'center' });
+      yPosition += 10;
 
-      while (heightLeft > 0) {
-        position = heightLeft - imgHeight + margin;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight - (margin * 2);
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(`Дата: ${new Date().toLocaleDateString('ru-RU')}`, pageWidth / 2, yPosition, { align: 'center' });
+      yPosition += 15;
+
+      // Основные показатели коррозии
+      pdf.setFontSize(14);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('ПОКАЗАТЕЛИ КОРРОЗИИ', margin, yPosition);
+      yPosition += 8;
+
+      pdf.setFontSize(11);
+      pdf.setFont('helvetica', 'normal');
+      
+      // Текущая скорость коррозии
+      pdf.setTextColor(255, 112, 0);
+      pdf.text(`Текущая скорость коррозии: ${result.corrosionRate} мм/год`, margin, yPosition);
+      yPosition += 7;
+      
+      // Средняя скорость коррозии
+      pdf.setTextColor(0, 0, 0);
+      pdf.text(`Средняя скорость коррозии: ${result.averageRate} мм/год`, margin, yPosition);
+      yPosition += 7;
+      
+      // Общая потеря толщины
+      pdf.setTextColor(220, 38, 38);
+      pdf.text(`Общая потеря толщины: ${result.totalLoss} мм`, margin, yPosition);
+      yPosition += 7;
+      
+      // Тренд
+      pdf.setTextColor(0, 0, 0);
+      let trendText = '';
+      if (result.trend === 'increasing') {
+        trendText = 'Тренд: Ускоряется ↗';
+        pdf.setTextColor(220, 38, 38);
+      } else if (result.trend === 'decreasing') {
+        trendText = 'Тренд: Замедляется ↘';
+        pdf.setTextColor(22, 163, 74);
+      } else {
+        trendText = 'Тренд: Стабильная →';
+        pdf.setTextColor(37, 99, 235);
       }
+      pdf.text(trendText, margin, yPosition);
+      yPosition += 12;
+
+      // Прогноз толщины
+      pdf.setTextColor(0, 0, 0);
+      pdf.setFontSize(14);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('ПРОГНОЗ ТОЛЩИНЫ СТЕНКИ', margin, yPosition);
+      yPosition += 8;
+
+      pdf.setFontSize(11);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(`Через 1 год: ${result.prediction.oneYear} мм`, margin, yPosition);
+      yPosition += 6;
+      pdf.text(`Через 4 года: ${result.prediction.fourYears} мм`, margin, yPosition);
+      yPosition += 6;
+      pdf.text(`Через 8 лет: ${result.prediction.eightYears} мм`, margin, yPosition);
+      yPosition += 6;
+      pdf.text(`Через 10 лет: ${result.prediction.tenYears} мм`, margin, yPosition);
+      yPosition += 12;
+
+      // Отбраковочная толщина (если указана)
+      if (result.rejectionThickness !== undefined) {
+        pdf.setFontSize(14);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(220, 38, 38);
+        pdf.text('ПРОГНОЗ ДОСТИЖЕНИЯ ОТБРАКОВКИ', margin, yPosition);
+        yPosition += 8;
+
+        pdf.setFontSize(11);
+        pdf.setFont('helvetica', 'normal');
+        pdf.setTextColor(0, 0, 0);
+        pdf.text(`Отбраковочная толщина: ${result.rejectionThickness.toFixed(2)} мм`, margin, yPosition);
+        yPosition += 6;
+        
+        if (result.yearsToRejection !== undefined && result.yearsToRejection > 0) {
+          pdf.text(`Достижение отбраковки через: ${result.yearsToRejection.toFixed(1)} лет`, margin, yPosition);
+        } else {
+          pdf.setTextColor(220, 38, 38);
+          pdf.setFont('helvetica', 'bold');
+          pdf.text('ОТБРАКОВОЧНАЯ ТОЛЩИНА УЖЕ ДОСТИГНУТА!', margin, yPosition);
+          pdf.setFont('helvetica', 'normal');
+        }
+        yPosition += 12;
+      }
+
+      // График
+      const element = chartRef.current.parentElement;
+      if (element) {
+        pdf.setTextColor(0, 0, 0);
+        pdf.setFontSize(14);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text('ГРАФИК ИЗМЕНЕНИЯ ТОЛЩИНЫ', margin, yPosition);
+        yPosition += 8;
+
+        const canvas = await html2canvas(element, {
+          scale: 2,
+          backgroundColor: '#ffffff',
+          logging: false,
+          useCORS: true,
+          allowTaint: true
+        });
+
+        const imgData = canvas.toDataURL('image/png');
+        const imgWidth = pageWidth - (margin * 2);
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+        if (yPosition + imgHeight > 280) {
+          pdf.addPage();
+          yPosition = margin;
+        }
+
+        pdf.addImage(imgData, 'PNG', margin, yPosition, imgWidth, imgHeight);
+        yPosition += imgHeight + 10;
+      }
+
+      // Рекомендации
+      if (yPosition > 240) {
+        pdf.addPage();
+        yPosition = margin;
+      }
+
+      pdf.setFontSize(14);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(245, 158, 11);
+      pdf.text('РЕКОМЕНДАЦИИ', margin, yPosition);
+      yPosition += 8;
+
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(0, 0, 0);
+      
+      const splitRecommendation = pdf.splitTextToSize(result.recommendation, pageWidth - margin * 2);
+      pdf.text(splitRecommendation, margin, yPosition);
+      yPosition += splitRecommendation.length * 5 + 10;
+
+      // Футер
+      pdf.setFontSize(8);
+      pdf.setTextColor(128, 128, 128);
+      const footer = [
+        'ℹ️ Скорость коррозии определена по методике ГОСТ 9.908-85',
+        'ℹ️ Прогноз основан на линейной экстраполяции текущей скорости',
+        'ℹ️ Сроки технического освидетельствования установлены Приказом Ростехнадзора №536 от 15.12.2020',
+        'ℹ️ Для точной оценки проводите УЗК-контроль в соответствии с графиком'
+      ];
+      
+      if (yPosition > 260) {
+        pdf.addPage();
+        yPosition = margin;
+      }
+      
+      footer.forEach(line => {
+        pdf.text(line, margin, yPosition);
+        yPosition += 4;
+      });
 
       pdf.save(`corrosion-report-${new Date().toISOString().split('T')[0]}.pdf`);
     } catch (error) {
