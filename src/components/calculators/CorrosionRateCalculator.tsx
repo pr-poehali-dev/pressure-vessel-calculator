@@ -17,6 +17,7 @@ export default function CorrosionRateCalculator() {
   const [newMeasurementYears, setNewMeasurementYears] = useState('');
   const [result, setResult] = useState<CorrosionResult | null>(null);
   const chartRef = useRef<HTMLDivElement>(null);
+  const pdfContentRef = useRef<HTMLDivElement>(null);
 
   const calculateSimpleRate = () => {
     const s0 = parseFloat(initialThickness);
@@ -281,177 +282,38 @@ export default function CorrosionRateCalculator() {
   }, [result, measurements, initialThickness, currentThickness, operatingYears, rejectionThickness]);
 
   const exportToPDF = async () => {
-    if (!result || !chartRef.current) return;
+    if (!result || !pdfContentRef.current) return;
 
     try {
+      const canvas = await html2canvas(pdfContentRef.current, {
+        scale: 2,
+        backgroundColor: '#ffffff',
+        logging: false,
+        useCORS: true,
+        allowTaint: true
+      });
+
+      const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pageWidth = pdf.internal.pageSize.getWidth();
-      const margin = 15;
-      let yPosition = margin;
-
-      // Заголовок
-      pdf.setFontSize(18);
-      pdf.setFont('helvetica', 'bold');
-      pdf.text('ОТЧЕТ ПО АНАЛИЗУ КОРРОЗИИ', pageWidth / 2, yPosition, { align: 'center' });
-      yPosition += 10;
-
-      pdf.setFontSize(10);
-      pdf.setFont('helvetica', 'normal');
-      pdf.text(`Дата: ${new Date().toLocaleDateString('ru-RU')}`, pageWidth / 2, yPosition, { align: 'center' });
-      yPosition += 15;
-
-      // Основные показатели коррозии
-      pdf.setFontSize(14);
-      pdf.setFont('helvetica', 'bold');
-      pdf.text('ПОКАЗАТЕЛИ КОРРОЗИИ', margin, yPosition);
-      yPosition += 8;
-
-      pdf.setFontSize(11);
-      pdf.setFont('helvetica', 'normal');
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 10;
       
-      // Текущая скорость коррозии
-      pdf.setTextColor(255, 112, 0);
-      pdf.text(`Текущая скорость коррозии: ${result.corrosionRate} мм/год`, margin, yPosition);
-      yPosition += 7;
+      const imgWidth = pageWidth - (margin * 2);
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
       
-      // Средняя скорость коррозии
-      pdf.setTextColor(0, 0, 0);
-      pdf.text(`Средняя скорость коррозии: ${result.averageRate} мм/год`, margin, yPosition);
-      yPosition += 7;
-      
-      // Общая потеря толщины
-      pdf.setTextColor(220, 38, 38);
-      pdf.text(`Общая потеря толщины: ${result.totalLoss} мм`, margin, yPosition);
-      yPosition += 7;
-      
-      // Тренд
-      pdf.setTextColor(0, 0, 0);
-      let trendText = '';
-      if (result.trend === 'increasing') {
-        trendText = 'Тренд: Ускоряется ↗';
-        pdf.setTextColor(220, 38, 38);
-      } else if (result.trend === 'decreasing') {
-        trendText = 'Тренд: Замедляется ↘';
-        pdf.setTextColor(22, 163, 74);
-      } else {
-        trendText = 'Тренд: Стабильная →';
-        pdf.setTextColor(37, 99, 235);
-      }
-      pdf.text(trendText, margin, yPosition);
-      yPosition += 12;
+      let heightLeft = imgHeight;
+      let position = margin;
 
-      // Прогноз толщины
-      pdf.setTextColor(0, 0, 0);
-      pdf.setFontSize(14);
-      pdf.setFont('helvetica', 'bold');
-      pdf.text('ПРОГНОЗ ТОЛЩИНЫ СТЕНКИ', margin, yPosition);
-      yPosition += 8;
+      pdf.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight - (margin * 2);
 
-      pdf.setFontSize(11);
-      pdf.setFont('helvetica', 'normal');
-      pdf.text(`Через 1 год: ${result.prediction.oneYear} мм`, margin, yPosition);
-      yPosition += 6;
-      pdf.text(`Через 4 года: ${result.prediction.fourYears} мм`, margin, yPosition);
-      yPosition += 6;
-      pdf.text(`Через 8 лет: ${result.prediction.eightYears} мм`, margin, yPosition);
-      yPosition += 6;
-      pdf.text(`Через 10 лет: ${result.prediction.tenYears} мм`, margin, yPosition);
-      yPosition += 12;
-
-      // Отбраковочная толщина (если указана)
-      if (result.rejectionThickness !== undefined) {
-        pdf.setFontSize(14);
-        pdf.setFont('helvetica', 'bold');
-        pdf.setTextColor(220, 38, 38);
-        pdf.text('ПРОГНОЗ ДОСТИЖЕНИЯ ОТБРАКОВКИ', margin, yPosition);
-        yPosition += 8;
-
-        pdf.setFontSize(11);
-        pdf.setFont('helvetica', 'normal');
-        pdf.setTextColor(0, 0, 0);
-        pdf.text(`Отбраковочная толщина: ${result.rejectionThickness.toFixed(2)} мм`, margin, yPosition);
-        yPosition += 6;
-        
-        if (result.yearsToRejection !== undefined && result.yearsToRejection > 0) {
-          pdf.text(`Достижение отбраковки через: ${result.yearsToRejection.toFixed(1)} лет`, margin, yPosition);
-        } else {
-          pdf.setTextColor(220, 38, 38);
-          pdf.setFont('helvetica', 'bold');
-          pdf.text('ОТБРАКОВОЧНАЯ ТОЛЩИНА УЖЕ ДОСТИГНУТА!', margin, yPosition);
-          pdf.setFont('helvetica', 'normal');
-        }
-        yPosition += 12;
-      }
-
-      // График
-      const element = chartRef.current.parentElement;
-      if (element) {
-        pdf.setTextColor(0, 0, 0);
-        pdf.setFontSize(14);
-        pdf.setFont('helvetica', 'bold');
-        pdf.text('ГРАФИК ИЗМЕНЕНИЯ ТОЛЩИНЫ', margin, yPosition);
-        yPosition += 8;
-
-        const canvas = await html2canvas(element, {
-          scale: 2,
-          backgroundColor: '#ffffff',
-          logging: false,
-          useCORS: true,
-          allowTaint: true
-        });
-
-        const imgData = canvas.toDataURL('image/png');
-        const imgWidth = pageWidth - (margin * 2);
-        const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-        if (yPosition + imgHeight > 280) {
-          pdf.addPage();
-          yPosition = margin;
-        }
-
-        pdf.addImage(imgData, 'PNG', margin, yPosition, imgWidth, imgHeight);
-        yPosition += imgHeight + 10;
-      }
-
-      // Рекомендации
-      if (yPosition > 240) {
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight + margin;
         pdf.addPage();
-        yPosition = margin;
+        pdf.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight - (margin * 2);
       }
-
-      pdf.setFontSize(14);
-      pdf.setFont('helvetica', 'bold');
-      pdf.setTextColor(245, 158, 11);
-      pdf.text('РЕКОМЕНДАЦИИ', margin, yPosition);
-      yPosition += 8;
-
-      pdf.setFontSize(10);
-      pdf.setFont('helvetica', 'normal');
-      pdf.setTextColor(0, 0, 0);
-      
-      const splitRecommendation = pdf.splitTextToSize(result.recommendation, pageWidth - margin * 2);
-      pdf.text(splitRecommendation, margin, yPosition);
-      yPosition += splitRecommendation.length * 5 + 10;
-
-      // Футер
-      pdf.setFontSize(8);
-      pdf.setTextColor(128, 128, 128);
-      const footer = [
-        'ℹ️ Скорость коррозии определена по методике ГОСТ 9.908-85',
-        'ℹ️ Прогноз основан на линейной экстраполяции текущей скорости',
-        'ℹ️ Сроки технического освидетельствования установлены Приказом Ростехнадзора №536 от 15.12.2020',
-        'ℹ️ Для точной оценки проводите УЗК-контроль в соответствии с графиком'
-      ];
-      
-      if (yPosition > 260) {
-        pdf.addPage();
-        yPosition = margin;
-      }
-      
-      footer.forEach(line => {
-        pdf.text(line, margin, yPosition);
-        yPosition += 4;
-      });
 
       pdf.save(`corrosion-report-${new Date().toISOString().split('T')[0]}.pdf`);
     } catch (error) {
@@ -495,15 +357,173 @@ export default function CorrosionRateCalculator() {
       </div>
 
       {result && (
-        <CorrosionResultsDisplay
-          result={result}
-          chartData={chartData}
-          chartRef={chartRef}
-          onExportPDF={exportToPDF}
-          getTrendIcon={getTrendIcon}
-          getTrendColor={getTrendColor}
-          getTrendText={getTrendText}
-        />
+        <>
+          <CorrosionResultsDisplay
+            result={result}
+            chartData={chartData}
+            chartRef={chartRef}
+            onExportPDF={exportToPDF}
+            getTrendIcon={getTrendIcon}
+            getTrendColor={getTrendColor}
+            getTrendText={getTrendText}
+          />
+
+          {/* Скрытый элемент для PDF экспорта */}
+          <div style={{ position: 'absolute', left: '-9999px', width: '210mm' }}>
+            <div ref={pdfContentRef} style={{ backgroundColor: 'white', padding: '20mm' }}>
+              {/* Заголовок */}
+              <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+                <h1 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '8px' }}>
+                  ОТЧЕТ ПО АНАЛИЗУ КОРРОЗИИ
+                </h1>
+                <p style={{ fontSize: '12px', color: '#666' }}>
+                  Дата: {new Date().toLocaleDateString('ru-RU')}
+                </p>
+              </div>
+
+              {/* Основные показатели */}
+              <div style={{ marginBottom: '20px' }}>
+                <h2 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '12px' }}>
+                  ПОКАЗАТЕЛИ КОРРОЗИИ
+                </h2>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div style={{ padding: '12px', backgroundColor: '#fff7ed', borderRadius: '8px' }}>
+                    <div style={{ fontSize: '12px', color: '#ea580c', marginBottom: '4px' }}>
+                      Текущая скорость коррозии
+                    </div>
+                    <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#c2410c' }}>
+                      {result.corrosionRate} мм/год
+                    </div>
+                  </div>
+                  <div style={{ padding: '12px', backgroundColor: '#f8fafc', borderRadius: '8px' }}>
+                    <div style={{ fontSize: '12px', color: '#475569', marginBottom: '4px' }}>
+                      Средняя скорость коррозии
+                    </div>
+                    <div style={{ fontSize: '20px', fontWeight: 'bold' }}>
+                      {result.averageRate} мм/год
+                    </div>
+                  </div>
+                  <div style={{ padding: '12px', backgroundColor: '#fef2f2', borderRadius: '8px' }}>
+                    <div style={{ fontSize: '12px', color: '#dc2626', marginBottom: '4px' }}>
+                      Общая потеря толщины
+                    </div>
+                    <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#b91c1c' }}>
+                      {result.totalLoss} мм
+                    </div>
+                  </div>
+                  <div style={{ 
+                    padding: '12px', 
+                    backgroundColor: result.trend === 'increasing' ? '#fef2f2' : 
+                                     result.trend === 'decreasing' ? '#f0fdf4' : '#eff6ff',
+                    borderRadius: '8px' 
+                  }}>
+                    <div style={{ fontSize: '12px', color: '#475569', marginBottom: '4px' }}>
+                      Тренд
+                    </div>
+                    <div style={{ 
+                      fontSize: '18px', 
+                      fontWeight: 'bold',
+                      color: result.trend === 'increasing' ? '#dc2626' : 
+                             result.trend === 'decreasing' ? '#16a34a' : '#2563eb'
+                    }}>
+                      {getTrendText(result.trend)}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Прогноз толщины */}
+              <div style={{ marginBottom: '20px', padding: '16px', backgroundColor: '#eff6ff', borderRadius: '8px' }}>
+                <h3 style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '12px', color: '#1e3a8a' }}>
+                  ПРОГНОЗ ТОЛЩИНЫ СТЕНКИ
+                </h3>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '12px' }}>
+                  <div>
+                    <div style={{ fontSize: '11px', color: '#2563eb', marginBottom: '4px' }}>Через 1 год</div>
+                    <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#1e3a8a' }}>
+                      {result.prediction.oneYear} мм
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '11px', color: '#2563eb', marginBottom: '4px' }}>Через 4 года</div>
+                    <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#1e3a8a' }}>
+                      {result.prediction.fourYears} мм
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '11px', color: '#2563eb', marginBottom: '4px' }}>Через 8 лет</div>
+                    <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#1e3a8a' }}>
+                      {result.prediction.eightYears} мм
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '11px', color: '#2563eb', marginBottom: '4px' }}>Через 10 лет</div>
+                    <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#1e3a8a' }}>
+                      {result.prediction.tenYears} мм
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Отбраковочная толщина */}
+              {result.rejectionThickness !== undefined && (
+                <div style={{ marginBottom: '20px', padding: '16px', backgroundColor: '#fef2f2', borderRadius: '8px', border: '2px solid #fecaca' }}>
+                  <h3 style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '12px', color: '#991b1b' }}>
+                    ПРОГНОЗ ДОСТИЖЕНИЯ ОТБРАКОВОЧНОЙ ТОЛЩИНЫ
+                  </h3>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                    <div>
+                      <div style={{ fontSize: '11px', color: '#dc2626', marginBottom: '4px' }}>
+                        Отбраковочная толщина
+                      </div>
+                      <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#991b1b' }}>
+                        {result.rejectionThickness.toFixed(2)} мм
+                      </div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '11px', color: '#dc2626', marginBottom: '4px' }}>
+                        Достижение отбраковки
+                      </div>
+                      <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#991b1b' }}>
+                        {result.yearsToRejection !== undefined && result.yearsToRejection > 0 
+                          ? `${result.yearsToRejection.toFixed(1)} лет`
+                          : 'УЖЕ ДОСТИГНУТА'}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* График */}
+              <div style={{ marginBottom: '20px' }}>
+                <h3 style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '12px' }}>
+                  ГРАФИК ИЗМЕНЕНИЯ ТОЛЩИНЫ
+                </h3>
+                <div ref={chartRef} />
+              </div>
+
+              {/* Рекомендации */}
+              <div style={{ padding: '16px', backgroundColor: '#fffbeb', borderRadius: '8px', border: '2px solid #fde68a' }}>
+                <h3 style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '8px', color: '#92400e' }}>
+                  РЕКОМЕНДАЦИИ
+                </h3>
+                <p style={{ fontSize: '12px', lineHeight: '1.6', color: '#1f2937' }}>
+                  {result.recommendation}
+                </p>
+              </div>
+
+              {/* Футер */}
+              <div style={{ marginTop: '20px', paddingTop: '12px', borderTop: '1px solid #e5e7eb' }}>
+                <div style={{ fontSize: '9px', color: '#6b7280', lineHeight: '1.5' }}>
+                  <p>ℹ️ Скорость коррозии определена по методике ГОСТ 9.908-85</p>
+                  <p>ℹ️ Прогноз основан на линейной экстраполяции текущей скорости</p>
+                  <p>ℹ️ Сроки технического освидетельствования установлены Приказом Ростехнадзора №536 от 15.12.2020</p>
+                  <p>ℹ️ Для точной оценки проводите УЗК-контроль в соответствии с графиком</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
       )}
     </div>
   );
