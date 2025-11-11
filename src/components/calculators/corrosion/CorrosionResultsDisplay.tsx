@@ -178,7 +178,7 @@ export default function CorrosionResultsDisplay({
             </div>
           </div>
 
-          {result.rejectionThickness !== undefined && (
+          {result.rejectionThickness !== undefined && result.yearsToRejection !== undefined && (
             <div className="p-4 bg-red-50 rounded-lg border-2 border-red-200">
               <h3 className="font-semibold text-red-900 mb-3 flex items-center gap-2">
                 <Icon name="AlertTriangle" size={18} />
@@ -194,7 +194,7 @@ export default function CorrosionResultsDisplay({
                 <div>
                   <div className="text-sm text-red-600">Срок до отбраковки</div>
                   <div className="text-2xl font-bold text-red-900">
-                    {result.yearsToRejection !== undefined && result.yearsToRejection > 0 
+                    {result.yearsToRejection > 0 
                       ? `${result.yearsToRejection.toFixed(1)} лет`
                       : 'УЖЕ ДОСТИГНУТА'}
                   </div>
