@@ -47,9 +47,13 @@ export default function CorrosionRateCalculator() {
     };
 
     let yearsToRejection: number | undefined = undefined;
-    if (sRej && corrosionRate > 0 && s1 > sRej) {
-      const remainingThickness = s1 - sRej;
-      yearsToRejection = remainingThickness / corrosionRate;
+    if (sRej) {
+      if (s1 <= sRej) {
+        yearsToRejection = -1;
+      } else if (corrosionRate > 0) {
+        const remainingThickness = s1 - sRej;
+        yearsToRejection = remainingThickness / corrosionRate;
+      }
     }
 
     let recommendation = '';
@@ -164,9 +168,13 @@ export default function CorrosionRateCalculator() {
     };
 
     let yearsToRejection: number | undefined = undefined;
-    if (sRej && currentRate > 0 && lastThickness > sRej) {
-      const remainingThickness = lastThickness - sRej;
-      yearsToRejection = remainingThickness / currentRate;
+    if (sRej) {
+      if (lastThickness <= sRej) {
+        yearsToRejection = -1;
+      } else if (currentRate > 0) {
+        const remainingThickness = lastThickness - sRej;
+        yearsToRejection = remainingThickness / currentRate;
+      }
     }
 
     let recommendation = '';
