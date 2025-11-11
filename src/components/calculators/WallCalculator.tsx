@@ -13,6 +13,8 @@ import { useRef } from 'react';
 import { Document, Paragraph, TextRun, Table, TableRow, TableCell, Packer, WidthType, AlignmentType, HeadingLevel } from 'docx';
 
 interface WallCalculatorProps {
+  vesselName: string;
+  setVesselName: (val: string) => void;
   diameter: string;
   setDiameter: (val: string) => void;
   pressure: string;
@@ -35,6 +37,8 @@ interface WallCalculatorProps {
 }
 
 export default function WallCalculator({
+  vesselName,
+  setVesselName,
   diameter,
   setDiameter,
   pressure,
@@ -242,6 +246,18 @@ export default function WallCalculator({
           <div className="grid md:grid-cols-2 gap-6">
             <div className="space-y-4">
               <div>
+                <Label htmlFor="vesselName" className="font-mono text-xs text-slate-600">Наименование сосуда</Label>
+                <Input
+                  id="vesselName"
+                  type="text"
+                  placeholder="Например: Реактор Р-101"
+                  value={vesselName}
+                  onChange={(e) => setVesselName(e.target.value)}
+                  className="mt-1.5 font-mono"
+                />
+              </div>
+
+              <div>
                 <Label htmlFor="diameter" className="font-mono text-xs text-slate-600">Внутренний диаметр, мм</Label>
                 <Input
                   id="diameter"
@@ -385,6 +401,12 @@ export default function WallCalculator({
                     <Separator />
 
                     <div className="space-y-2 text-sm">
+                      {vesselName && (
+                        <div className="flex justify-between font-mono">
+                          <span className="text-slate-600">Наименование:</span>
+                          <span className="font-semibold">{vesselName}</span>
+                        </div>
+                      )}
                       <div className="flex justify-between font-mono">
                         <span className="text-slate-600">Внутренний диаметр:</span>
                         <span className="font-semibold">{diameter} мм</span>

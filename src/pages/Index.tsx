@@ -20,6 +20,7 @@ export default function Index() {
   const [medium, setMedium] = useState('');
   const [corrosionAllowance, setCorrosionAllowance] = useState('1.0');
   
+  const [vesselName, setVesselName] = useState('');
   const [diameter, setDiameter] = useState('');
   const [pressure, setPressure] = useState('');
   const [temperature, setTemperature] = useState('20');
@@ -37,6 +38,7 @@ export default function Index() {
   const [numBolts, setNumBolts] = useState('');
   const [flangeResult, setFlangeResult] = useState<{gasketLoad: number; boltStress: number} | null>(null);
   
+  const [headVesselName, setHeadVesselName] = useState('');
   const [headDiameter, setHeadDiameter] = useState('');
   const [headPressure, setHeadPressure] = useState('');
   const [headTemperature, setHeadTemperature] = useState('20');
@@ -274,6 +276,8 @@ export default function Index() {
         
         {activeTab === 'calculator' && (
           <WallCalculator
+            vesselName={vesselName}
+            setVesselName={setVesselName}
             diameter={diameter}
             setDiameter={setDiameter}
             pressure={pressure}
@@ -298,6 +302,8 @@ export default function Index() {
 
         {activeTab === 'head-calculator' && (
           <HeadCalculator
+            vesselName={headVesselName}
+            setVesselName={setHeadVesselName}
             headDiameter={headDiameter}
             setHeadDiameter={setHeadDiameter}
             headPressure={headPressure}

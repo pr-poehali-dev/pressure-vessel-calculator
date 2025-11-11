@@ -8,6 +8,8 @@ import { Separator } from '@/components/ui/separator';
 import { materials } from '@/lib/constants';
 
 interface HeadCalculatorProps {
+  vesselName: string;
+  setVesselName: (val: string) => void;
   headDiameter: string;
   setHeadDiameter: (val: string) => void;
   headPressure: string;
@@ -30,6 +32,8 @@ interface HeadCalculatorProps {
 }
 
 export default function HeadCalculator({
+  vesselName,
+  setVesselName,
   headDiameter,
   setHeadDiameter,
   headPressure,
@@ -63,6 +67,18 @@ export default function HeadCalculator({
         <CardContent className="space-y-6">
           <div className="grid md:grid-cols-2 gap-6">
             <div className="space-y-4">
+              <div>
+                <Label htmlFor="vesselName" className="font-mono text-xs text-slate-600">Наименование сосуда</Label>
+                <Input
+                  id="vesselName"
+                  type="text"
+                  placeholder="Например: Емкость Е-201"
+                  value={vesselName}
+                  onChange={(e) => setVesselName(e.target.value)}
+                  className="mt-1.5 font-mono"
+                />
+              </div>
+
               <div>
                 <Label htmlFor="headType" className="font-mono text-xs text-slate-600">Тип днища</Label>
                 <Select value={headType} onValueChange={setHeadType}>
@@ -195,6 +211,12 @@ export default function HeadCalculator({
                     <Separator />
 
                     <div className="space-y-2 text-sm">
+                      {vesselName && (
+                        <div className="flex justify-between font-mono">
+                          <span className="text-slate-600">Наименование:</span>
+                          <span className="font-semibold">{vesselName}</span>
+                        </div>
+                      )}
                       <div className="flex justify-between font-mono">
                         <span className="text-slate-600">Тип днища:</span>
                         <span className="font-semibold">

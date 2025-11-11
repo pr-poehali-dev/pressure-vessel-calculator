@@ -18,6 +18,7 @@ interface LifetimeResult {
 export default function LifetimeCalculator() {
   const [diameter, setDiameter] = useState('');
   const [initialThickness, setInitialThickness] = useState('');
+  const [actualThickness, setActualThickness] = useState('');
   const [operatingYears, setOperatingYears] = useState('');
   const [corrosionRate, setCorrosionRate] = useState('');
   const [pressure, setPressure] = useState('');
@@ -30,6 +31,7 @@ export default function LifetimeCalculator() {
   const calculateRemainingLife = () => {
     const D = parseFloat(diameter);
     const s0 = parseFloat(initialThickness);
+    const sActual = actualThickness ? parseFloat(actualThickness) : null;
     const t = parseFloat(operatingYears);
     const v = parseFloat(corrosionRate);
     const P = parseFloat(pressure);
@@ -42,7 +44,7 @@ export default function LifetimeCalculator() {
     }
 
     const sigma = getAllowableStress(material, T);
-    const currentThickness = s0 - v * t;
+    const currentThickness = sActual || (s0 - v * t);
     
     const minRequiredThickness = (P * D) / (2 * sigma * phi - P);
     const corrosionAllowance = 2.0;
@@ -135,6 +137,18 @@ export default function LifetimeCalculator() {
                 placeholder="10"
                 value={initialThickness}
                 onChange={(e) => setInitialThickness(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="actualThickness">Фактическая толщина, мм</Label>
+              <Input
+                id="actualThickness"
+                type="number"
+                step="0.1"
+                placeholder="Замеренная (необязательно)"
+                value={actualThickness}
+                onChange={(e) => setActualThickness(e.target.value)}
               />
             </div>
 
