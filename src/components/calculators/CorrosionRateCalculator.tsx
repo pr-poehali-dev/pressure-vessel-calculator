@@ -27,7 +27,12 @@ export default function CorrosionRateCalculator() {
     const t = parseFloat(operatingYears);
     const sRej = parseFloat(rejectionThickness);
 
-    if (!s0 || !s1 || !t || s1 >= s0) {
+    if (!s0 || !s1 || !t) {
+      return;
+    }
+
+    if (s1 >= s0) {
+      alert('Текущая толщина не может быть больше или равна начальной');
       return;
     }
 
@@ -42,7 +47,7 @@ export default function CorrosionRateCalculator() {
     };
 
     let yearsToRejection: number | undefined = undefined;
-    if (sRej && corrosionRate > 0) {
+    if (sRej && corrosionRate > 0 && s1 > sRej) {
       const remainingThickness = s1 - sRej;
       yearsToRejection = remainingThickness / corrosionRate;
     }
@@ -123,7 +128,13 @@ export default function CorrosionRateCalculator() {
 
     const rates: number[] = [];
     for (let i = 1; i < sortedMeasurements.length; i++) {
-      const deltaThickness = sortedMeasurements[i - 1].thickness - sortedMeasurements[i].thickness;
+      const prevThickness = sortedMeasurements[i - 1].thickness;
+      const currThickness = sortedMeasurements[i].thickness;
+      
+      const minThickness = Math.min(prevThickness, currThickness);
+      const maxThickness = Math.max(prevThickness, currThickness);
+      
+      const deltaThickness = maxThickness - minThickness;
       const deltaTime = sortedMeasurements[i].years - sortedMeasurements[i - 1].years;
       rates.push(deltaThickness / deltaTime);
     }
@@ -153,7 +164,7 @@ export default function CorrosionRateCalculator() {
     };
 
     let yearsToRejection: number | undefined = undefined;
-    if (sRej && currentRate > 0) {
+    if (sRej && currentRate > 0 && lastThickness > sRej) {
       const remainingThickness = lastThickness - sRej;
       yearsToRejection = remainingThickness / currentRate;
     }
