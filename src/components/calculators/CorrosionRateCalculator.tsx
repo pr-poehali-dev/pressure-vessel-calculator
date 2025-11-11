@@ -47,10 +47,10 @@ export default function CorrosionRateCalculator() {
     };
 
     let yearsToRejection: number | undefined = undefined;
-    if (sRej) {
+    if (sRej && corrosionRate > 0) {
       if (s1 <= sRej) {
         yearsToRejection = -1;
-      } else if (corrosionRate > 0) {
+      } else {
         const remainingThickness = s1 - sRej;
         yearsToRejection = remainingThickness / corrosionRate;
       }
@@ -168,10 +168,10 @@ export default function CorrosionRateCalculator() {
     };
 
     let yearsToRejection: number | undefined = undefined;
-    if (sRej) {
+    if (sRej && currentRate > 0) {
       if (lastThickness <= sRej) {
         yearsToRejection = -1;
-      } else if (currentRate > 0) {
+      } else {
         const remainingThickness = lastThickness - sRej;
         yearsToRejection = remainingThickness / currentRate;
       }
