@@ -11,6 +11,8 @@ interface SimpleCorrosionCalculatorProps {
   setCurrentThickness: (value: string) => void;
   operatingYears: string;
   setOperatingYears: (value: string) => void;
+  rejectionThickness: string;
+  setRejectionThickness: (value: string) => void;
   commissioningDate: string;
   setCommissioningDate: (value: string) => void;
   onCalculate: () => void;
@@ -23,6 +25,8 @@ export default function SimpleCorrosionCalculator({
   setCurrentThickness,
   operatingYears,
   setOperatingYears,
+  rejectionThickness,
+  setRejectionThickness,
   commissioningDate,
   setCommissioningDate,
   onCalculate
@@ -72,11 +76,11 @@ export default function SimpleCorrosionCalculator({
             />
           </div>
 
-          <div className="space-y-2 sm:col-span-2">
+          <div className="space-y-2">
             <Label htmlFor="operatingYears" className="flex items-center gap-2">
               Срок эксплуатации, лет
               <span className="text-xs font-normal text-slate-500">
-                (время между начальным и текущим замером)
+                (между замерами)
               </span>
             </Label>
             <Input
@@ -85,6 +89,23 @@ export default function SimpleCorrosionCalculator({
               placeholder="5"
               value={operatingYears}
               onChange={(e) => setOperatingYears(e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="rejectionThickness" className="flex items-center gap-2">
+              Отбраковочная толщина, мм
+              <span className="text-xs font-normal text-slate-500">
+                (минимально допустимая)
+              </span>
+            </Label>
+            <Input
+              id="rejectionThickness"
+              type="number"
+              step="0.1"
+              placeholder="6.0"
+              value={rejectionThickness}
+              onChange={(e) => setRejectionThickness(e.target.value)}
             />
           </div>
         </div>

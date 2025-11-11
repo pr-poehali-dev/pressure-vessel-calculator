@@ -9,6 +9,7 @@ export default function CorrosionRateCalculator() {
   const [initialThickness, setInitialThickness] = useState('');
   const [currentThickness, setCurrentThickness] = useState('');
   const [operatingYears, setOperatingYears] = useState('');
+  const [rejectionThickness, setRejectionThickness] = useState('');
   const [commissioningDate, setCommissioningDate] = useState('');
   const [measurements, setMeasurements] = useState<Measurement[]>([]);
   const [newMeasurementDate, setNewMeasurementDate] = useState('');
@@ -21,6 +22,7 @@ export default function CorrosionRateCalculator() {
     const s0 = parseFloat(initialThickness);
     const s1 = parseFloat(currentThickness);
     const t = parseFloat(operatingYears);
+    const sRej = parseFloat(rejectionThickness);
 
     if (!s0 || !s1 || !t || s1 >= s0) {
       return;
@@ -31,9 +33,16 @@ export default function CorrosionRateCalculator() {
     
     const prediction = {
       oneYear: s1 - corrosionRate * 1,
-      fiveYears: s1 - corrosionRate * 5,
+      fourYears: s1 - corrosionRate * 4,
+      eightYears: s1 - corrosionRate * 8,
       tenYears: s1 - corrosionRate * 10,
     };
+
+    let yearsToRejection: number | undefined = undefined;
+    if (sRej && corrosionRate > 0) {
+      const remainingThickness = s1 - sRej;
+      yearsToRejection = remainingThickness / corrosionRate;
+    }
 
     let recommendation = '';
     if (corrosionRate < 0.1) {
@@ -53,9 +62,12 @@ export default function CorrosionRateCalculator() {
       trend: 'stable',
       prediction: {
         oneYear: Math.round(prediction.oneYear * 100) / 100,
-        fiveYears: Math.round(prediction.fiveYears * 100) / 100,
+        fourYears: Math.round(prediction.fourYears * 100) / 100,
+        eightYears: Math.round(prediction.eightYears * 100) / 100,
         tenYears: Math.round(prediction.tenYears * 100) / 100,
       },
+      rejectionThickness: sRej || undefined,
+      yearsToRejection: yearsToRejection !== undefined ? Math.round(yearsToRejection * 10) / 10 : undefined,
       recommendation
     });
   };
@@ -93,6 +105,7 @@ export default function CorrosionRateCalculator() {
     }
 
     const sortedMeasurements = [...measurements].sort((a, b) => a.years - b.years);
+    const sRej = parseFloat(rejectionThickness);
     
     const totalLoss = sortedMeasurements[0].thickness - sortedMeasurements[sortedMeasurements.length - 1].thickness;
     const totalTime = sortedMeasurements[sortedMeasurements.length - 1].years - sortedMeasurements[0].years;
@@ -124,9 +137,16 @@ export default function CorrosionRateCalculator() {
     
     const prediction = {
       oneYear: lastThickness - currentRate * 1,
-      fiveYears: lastThickness - currentRate * 5,
+      fourYears: lastThickness - currentRate * 4,
+      eightYears: lastThickness - currentRate * 8,
       tenYears: lastThickness - currentRate * 10,
     };
+
+    let yearsToRejection: number | undefined = undefined;
+    if (sRej && currentRate > 0) {
+      const remainingThickness = lastThickness - sRej;
+      yearsToRejection = remainingThickness / currentRate;
+    }
 
     let recommendation = '';
     if (trend === 'increasing') {
@@ -150,9 +170,12 @@ export default function CorrosionRateCalculator() {
       trend,
       prediction: {
         oneYear: Math.round(prediction.oneYear * 100) / 100,
-        fiveYears: Math.round(prediction.fiveYears * 100) / 100,
+        fourYears: Math.round(prediction.fourYears * 100) / 100,
+        eightYears: Math.round(prediction.eightYears * 100) / 100,
         tenYears: Math.round(prediction.tenYears * 100) / 100,
       },
+      rejectionThickness: sRej || undefined,
+      yearsToRejection: yearsToRejection !== undefined ? Math.round(yearsToRejection * 10) / 10 : undefined,
       recommendation
     });
   };
@@ -194,6 +217,7 @@ export default function CorrosionRateCalculator() {
     if (!result) return [];
 
     const data = [];
+    const rejThickness = result.rejectionThickness;
 
     if (measurements.length >= 2) {
       const sortedMeasurements = [...measurements].sort((a, b) => a.years - b.years);
@@ -202,12 +226,13 @@ export default function CorrosionRateCalculator() {
         data.push({
           year: m.years,
           actual: m.thickness,
-          predicted: null
+          predicted: null,
+          rejection: rejThickness || null
         });
       }
 
       const lastMeasurement = sortedMeasurements[sortedMeasurements.length - 1];
-      const futureYears = [1, 5, 10];
+      const futureYears = [1, 4, 8, 10];
       
       for (const deltaYear of futureYears) {
         const futureYear = lastMeasurement.years + deltaYear;
@@ -216,7 +241,8 @@ export default function CorrosionRateCalculator() {
         data.push({
           year: futureYear,
           actual: null,
-          predicted: Math.max(0, predictedThickness)
+          predicted: Math.max(0, predictedThickness),
+          rejection: rejThickness || null
         });
       }
     } else if (initialThickness && currentThickness && operatingYears) {
@@ -226,16 +252,18 @@ export default function CorrosionRateCalculator() {
       data.push({
         year: 0,
         actual: s0,
-        predicted: null
+        predicted: null,
+        rejection: rejThickness || null
       });
       
       data.push({
         year: years,
         actual: parseFloat(currentThickness),
-        predicted: null
+        predicted: null,
+        rejection: rejThickness || null
       });
 
-      const futureYears = [years + 1, years + 5, years + 10];
+      const futureYears = [years + 1, years + 4, years + 8, years + 10];
       for (const futureYear of futureYears) {
         const deltaYear = futureYear - years;
         const predictedThickness = parseFloat(currentThickness) - result.corrosionRate * deltaYear;
@@ -243,13 +271,14 @@ export default function CorrosionRateCalculator() {
         data.push({
           year: futureYear,
           actual: null,
-          predicted: Math.max(0, predictedThickness)
+          predicted: Math.max(0, predictedThickness),
+          rejection: rejThickness || null
         });
       }
     }
 
     return data;
-  }, [result, measurements, initialThickness, currentThickness, operatingYears]);
+  }, [result, measurements, initialThickness, currentThickness, operatingYears, rejectionThickness]);
 
   const exportToPDF = async () => {
     if (!result || !chartRef.current) return;
@@ -304,6 +333,8 @@ export default function CorrosionRateCalculator() {
           setCurrentThickness={setCurrentThickness}
           operatingYears={operatingYears}
           setOperatingYears={setOperatingYears}
+          rejectionThickness={rejectionThickness}
+          setRejectionThickness={setRejectionThickness}
           commissioningDate={commissioningDate}
           setCommissioningDate={setCommissioningDate}
           onCalculate={calculateSimpleRate}
@@ -317,6 +348,8 @@ export default function CorrosionRateCalculator() {
           setNewMeasurementThickness={setNewMeasurementThickness}
           newMeasurementYears={newMeasurementYears}
           setNewMeasurementYears={setNewMeasurementYears}
+          rejectionThickness={rejectionThickness}
+          setRejectionThickness={setRejectionThickness}
           commissioningDate={commissioningDate}
           setCommissioningDate={setCommissioningDate}
           onAddMeasurement={addMeasurement}

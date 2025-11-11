@@ -19,6 +19,8 @@ interface AdvancedCorrosionCalculatorProps {
   setNewMeasurementThickness: (value: string) => void;
   newMeasurementYears: string;
   setNewMeasurementYears: (value: string) => void;
+  rejectionThickness: string;
+  setRejectionThickness: (value: string) => void;
   commissioningDate: string;
   setCommissioningDate: (value: string) => void;
   onAddMeasurement: () => void;
@@ -34,6 +36,8 @@ export default function AdvancedCorrosionCalculator({
   setNewMeasurementThickness,
   newMeasurementYears,
   setNewMeasurementYears,
+  rejectionThickness,
+  setRejectionThickness,
   commissioningDate,
   setCommissioningDate,
   onAddMeasurement,
@@ -117,6 +121,23 @@ export default function AdvancedCorrosionCalculator({
             <Icon name="Plus" size={18} className="mr-2" />
             Добавить замер
           </Button>
+
+          <div className="space-y-2 pt-2">
+            <Label htmlFor="advancedRejectionThickness" className="flex items-center gap-2">
+              Отбраковочная толщина, мм
+              <span className="text-xs font-normal text-slate-500">
+                (минимально допустимая)
+              </span>
+            </Label>
+            <Input
+              id="advancedRejectionThickness"
+              type="number"
+              step="0.1"
+              placeholder="6.0"
+              value={rejectionThickness}
+              onChange={(e) => setRejectionThickness(e.target.value)}
+            />
+          </div>
 
           <Button 
             onClick={onCalculate} 

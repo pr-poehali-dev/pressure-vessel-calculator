@@ -11,15 +11,18 @@ export interface CorrosionResult {
   trend: 'increasing' | 'stable' | 'decreasing';
   prediction: {
     oneYear: number;
-    fiveYears: number;
+    fourYears: number;
+    eightYears: number;
     tenYears: number;
   };
+  rejectionThickness?: number;
+  yearsToRejection?: number;
   recommendation: string;
 }
 
 interface CorrosionResultsDisplayProps {
   result: CorrosionResult;
-  chartData: Array<{ year: number; actual: number | null; predicted: number | null }>;
+  chartData: Array<{ year: number; actual: number | null; predicted: number | null; rejection?: number | null }>;
   chartRef: RefObject<HTMLDivElement>;
   onExportPDF: () => void;
   getTrendIcon: (trend: 'increasing' | 'stable' | 'decreasing') => string;
@@ -128,14 +131,16 @@ export default function CorrosionResultsDisplay({
                   name="Прогноз"
                   connectNulls={false}
                 />
-                {result && (
-                  <ReferenceLine 
-                    y={0} 
-                    stroke="#ef4444" 
-                    strokeDasharray="3 3"
-                    label={{ value: 'Критический уровень', position: 'insideBottomRight', fill: '#ef4444' }}
-                  />
-                )}
+                <Line 
+                  type="monotone" 
+                  dataKey="rejection" 
+                  stroke="#ef4444" 
+                  strokeWidth={2}
+                  strokeDasharray="3 3"
+                  dot={false}
+                  name="Отбраковочная толщина"
+                  connectNulls={true}
+                />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -145,7 +150,7 @@ export default function CorrosionResultsDisplay({
               <Icon name="Calendar" size={18} />
               Прогноз толщины стенки
             </h3>
-            <div className="grid sm:grid-cols-3 gap-3">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
               <div>
                 <div className="text-sm text-blue-600">Через 1 год</div>
                 <div className="text-lg font-bold text-blue-900">
@@ -153,9 +158,15 @@ export default function CorrosionResultsDisplay({
                 </div>
               </div>
               <div>
-                <div className="text-sm text-blue-600">Через 5 лет</div>
+                <div className="text-sm text-blue-600">Через 4 года</div>
                 <div className="text-lg font-bold text-blue-900">
-                  {result.prediction.fiveYears} мм
+                  {result.prediction.fourYears} мм
+                </div>
+              </div>
+              <div>
+                <div className="text-sm text-blue-600">Через 8 лет</div>
+                <div className="text-lg font-bold text-blue-900">
+                  {result.prediction.eightYears} мм
                 </div>
               </div>
               <div>
@@ -166,6 +177,31 @@ export default function CorrosionResultsDisplay({
               </div>
             </div>
           </div>
+
+          {result.rejectionThickness !== undefined && (
+            <div className="p-4 bg-red-50 rounded-lg border-2 border-red-200">
+              <h3 className="font-semibold text-red-900 mb-3 flex items-center gap-2">
+                <Icon name="AlertTriangle" size={18} />
+                Прогноз достижения отбраковочной толщины
+              </h3>
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <div className="text-sm text-red-600">Отбраковочная толщина</div>
+                  <div className="text-2xl font-bold text-red-900">
+                    {result.rejectionThickness.toFixed(2)} мм
+                  </div>
+                </div>
+                <div>
+                  <div className="text-sm text-red-600">Достижение отбраковки</div>
+                  <div className="text-2xl font-bold text-red-900">
+                    {result.yearsToRejection !== undefined && result.yearsToRejection > 0 
+                      ? `${result.yearsToRejection.toFixed(1)} лет`
+                      : 'УЖЕ ДОСТИГНУТА'}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="p-4 bg-amber-50 rounded-lg border-2 border-amber-200">
             <div className="flex items-start gap-3">
