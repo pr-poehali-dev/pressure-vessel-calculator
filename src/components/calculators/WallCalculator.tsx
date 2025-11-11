@@ -23,7 +23,14 @@ interface WallCalculatorProps {
   setMaterial: (val: string) => void;
   weldCoeff: string;
   setWeldCoeff: (val: string) => void;
+  corrosionAllowance: string;
+  setCorrosionAllowance: (val: string) => void;
+  executiveThickness: string;
+  setExecutiveThickness: (val: string) => void;
+  actualThickness: string;
+  setActualThickness: (val: string) => void;
   result: number | null;
+  calcPressure: number | null;
   calculateThickness: () => void;
 }
 
@@ -38,7 +45,14 @@ export default function WallCalculator({
   setMaterial,
   weldCoeff,
   setWeldCoeff,
+  corrosionAllowance,
+  setCorrosionAllowance,
+  executiveThickness,
+  setExecutiveThickness,
+  actualThickness,
+  setActualThickness,
   result,
+  calcPressure,
   calculateThickness
 }: WallCalculatorProps) {
   const reportRef = useRef<HTMLDivElement>(null);
@@ -294,6 +308,47 @@ export default function WallCalculator({
                 </Select>
               </div>
 
+              <Separator />
+
+              <div>
+                <Label htmlFor="corrosion" className="font-mono text-xs text-slate-600">Прибавка на коррозию, мм</Label>
+                <Input
+                  id="corrosion"
+                  type="number"
+                  step="0.1"
+                  placeholder="Введите прибавку"
+                  value={corrosionAllowance}
+                  onChange={(e) => setCorrosionAllowance(e.target.value)}
+                  className="mt-1.5 font-mono"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="executive" className="font-mono text-xs text-slate-600">Исполнительная толщина, мм</Label>
+                <Input
+                  id="executive"
+                  type="number"
+                  step="0.1"
+                  placeholder="По чертежу"
+                  value={executiveThickness}
+                  onChange={(e) => setExecutiveThickness(e.target.value)}
+                  className="mt-1.5 font-mono"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="actual" className="font-mono text-xs text-slate-600">Фактическая толщина, мм</Label>
+                <Input
+                  id="actual"
+                  type="number"
+                  step="0.1"
+                  placeholder="Замеренная"
+                  value={actualThickness}
+                  onChange={(e) => setActualThickness(e.target.value)}
+                  className="mt-1.5 font-mono"
+                />
+              </div>
+
               <Button onClick={calculateThickness} className="w-full bg-blue-600 hover:bg-blue-700" size="lg">
                 <Icon name="Play" size={18} className="mr-2" />
                 Рассчитать
@@ -331,7 +386,7 @@ export default function WallCalculator({
 
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between font-mono">
-                        <span className="text-slate-600">Диаметр:</span>
+                        <span className="text-slate-600">Внутренний диаметр:</span>
                         <span className="font-semibold">{diameter} мм</span>
                       </div>
                       <div className="flex justify-between font-mono">
@@ -339,15 +394,15 @@ export default function WallCalculator({
                         <span className="font-semibold">{pressure} МПа</span>
                       </div>
                       <div className="flex justify-between font-mono">
-                        <span className="text-slate-600">Расчетное давление:</span>
-                        <span className="font-semibold">{(parseFloat(pressure) * 1.1).toFixed(2)} МПа</span>
+                        <span className="text-slate-600">Расчётное давление:</span>
+                        <span className="font-semibold text-blue-600">{calcPressure?.toFixed(2)} МПа</span>
                       </div>
                       <div className="flex justify-between font-mono">
                         <span className="text-slate-600">Температура:</span>
                         <span className="font-semibold">{temperature} °C</span>
                       </div>
                       <div className="flex justify-between font-mono">
-                        <span className="text-slate-600">Материал:</span>
+                        <span className="text-slate-600">Марка стали:</span>
                         <span className="font-semibold">{material}</span>
                       </div>
                       <div className="flex justify-between font-mono">
@@ -358,11 +413,36 @@ export default function WallCalculator({
 
                     <Separator />
 
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between font-mono">
+                        <span className="text-slate-600">Расчётная толщина:</span>
+                        <span className="font-semibold text-blue-600">{result.toFixed(1)} мм</span>
+                      </div>
+                      <div className="flex justify-between font-mono">
+                        <span className="text-slate-600">Прибавка на коррозию:</span>
+                        <span className="font-semibold">{corrosionAllowance || '-'} мм</span>
+                      </div>
+                      {executiveThickness && (
+                        <div className="flex justify-between font-mono">
+                          <span className="text-slate-600">Исполнительная толщина:</span>
+                          <span className="font-semibold">{executiveThickness} мм</span>
+                        </div>
+                      )}
+                      {actualThickness && (
+                        <div className="flex justify-between font-mono">
+                          <span className="text-slate-600">Фактическая толщина:</span>
+                          <span className="font-semibold">{actualThickness} мм</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <Separator />
+
                     <div className="p-3 bg-amber-50 border border-amber-200 rounded">
                       <div className="flex items-start gap-2">
                         <Icon name="AlertTriangle" size={18} className="text-amber-600 mt-0.5" />
                         <div className="text-xs text-amber-800">
-                          <strong>Рекомендация:</strong> Добавьте припуск на коррозию (обычно 1-3 мм) и округлите до стандартной толщины листа
+                          <strong>По РД 03-421-01:</strong> Округлите расчётную толщину до стандартной толщины листа
                         </div>
                       </div>
                     </div>

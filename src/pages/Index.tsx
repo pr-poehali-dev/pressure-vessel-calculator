@@ -25,7 +25,11 @@ export default function Index() {
   const [temperature, setTemperature] = useState('20');
   const [material, setMaterial] = useState('');
   const [weldCoeff, setWeldCoeff] = useState('1.0');
+  const [shellCorrosion, setShellCorrosion] = useState('2.0');
+  const [shellExecutive, setShellExecutive] = useState('');
+  const [shellActual, setShellActual] = useState('');
   const [result, setResult] = useState<number | null>(null);
+  const [calcPressure, setCalcPressure] = useState<number | null>(null);
   
   const [flangeDiameter, setFlangeDiameter] = useState('');
   const [flangeThickness, setFlangeThickness] = useState('');
@@ -38,7 +42,11 @@ export default function Index() {
   const [headTemperature, setHeadTemperature] = useState('20');
   const [headMaterial, setHeadMaterial] = useState('');
   const [headType, setHeadType] = useState('elliptical');
+  const [headCorrosion, setHeadCorrosion] = useState('2.0');
+  const [headExecutive, setHeadExecutive] = useState('');
+  const [headActual, setHeadActual] = useState('');
   const [headResult, setHeadResult] = useState<number | null>(null);
+  const [headCalcPressure, setHeadCalcPressure] = useState<number | null>(null);
   
   const [supportType, setSupportType] = useState('saddle');
   const [vesselDiameter, setVesselDiameter] = useState('');
@@ -65,8 +73,11 @@ export default function Index() {
 
     if (!D || !P || !material || !phi || isNaN(T)) return;
 
+    const calcP = P * 1.1;
+    setCalcPressure(calcP);
+
     const sigma = getAllowableStress(material, T);
-    const s = (P * D) / (2 * sigma * phi - P);
+    const s = (calcP * D) / (2 * sigma * phi - calcP);
     
     setResult(Math.ceil(s * 10) / 10);
   };
@@ -110,20 +121,23 @@ export default function Index() {
 
     if (!D || !P || !headMaterial || isNaN(T)) return;
 
+    const calcP = P * 1.1;
+    setHeadCalcPressure(calcP);
+
     const sigma = getAllowableStress(headMaterial, T);
     const phi = 1.0;
     let s = 0;
 
     if (headType === 'elliptical') {
-      s = (P * D) / (4 * sigma * phi - 0.4 * P);
+      s = (calcP * D) / (4 * sigma * phi - 0.4 * calcP);
     } else if (headType === 'hemispherical') {
-      s = (P * D) / (4 * sigma * phi - P);
+      s = (calcP * D) / (4 * sigma * phi - calcP);
     } else if (headType === 'torispherical') {
       const R = D;
-      s = (P * R) / (2 * sigma * phi - 0.5 * P);
+      s = (calcP * R) / (2 * sigma * phi - 0.5 * calcP);
     } else {
       const K = 0.42;
-      s = D * Math.sqrt((K * P) / sigma);
+      s = D * Math.sqrt((K * calcP) / sigma);
     }
 
     setHeadResult(Math.ceil(s * 10) / 10);
@@ -270,7 +284,14 @@ export default function Index() {
             setMaterial={setMaterial}
             weldCoeff={weldCoeff}
             setWeldCoeff={setWeldCoeff}
+            corrosionAllowance={shellCorrosion}
+            setCorrosionAllowance={setShellCorrosion}
+            executiveThickness={shellExecutive}
+            setExecutiveThickness={setShellExecutive}
+            actualThickness={shellActual}
+            setActualThickness={setShellActual}
             result={result}
+            calcPressure={calcPressure}
             calculateThickness={calculateThickness}
           />
         )}
@@ -283,6 +304,13 @@ export default function Index() {
             setHeadPressure={setHeadPressure}
             headTemperature={headTemperature}
             setHeadTemperature={setHeadTemperature}
+            corrosionAllowance={headCorrosion}
+            setCorrosionAllowance={setHeadCorrosion}
+            executiveThickness={headExecutive}
+            setExecutiveThickness={setHeadExecutive}
+            actualThickness={headActual}
+            setActualThickness={setHeadActual}
+            calcPressure={headCalcPressure}
             headMaterial={headMaterial}
             setHeadMaterial={setHeadMaterial}
             headType={headType}

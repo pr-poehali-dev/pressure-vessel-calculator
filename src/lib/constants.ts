@@ -1,5 +1,20 @@
 export const materials = [
   { 
+    name: '16К', 
+    youngModulus: 200000,
+    stressByTemp: [
+      { temp: 20, stress: 140 },
+      { temp: 100, stress: 135 },
+      { temp: 150, stress: 132 },
+      { temp: 200, stress: 128 },
+      { temp: 250, stress: 124 },
+      { temp: 300, stress: 120 },
+      { temp: 350, stress: 115 },
+      { temp: 400, stress: 108 },
+    ],
+    allowableStress: 140
+  },
+  { 
     name: 'Сталь 20', 
     youngModulus: 200000,
     stressByTemp: [

@@ -18,7 +18,14 @@ interface HeadCalculatorProps {
   setHeadMaterial: (val: string) => void;
   headType: string;
   setHeadType: (val: string) => void;
+  corrosionAllowance: string;
+  setCorrosionAllowance: (val: string) => void;
+  executiveThickness: string;
+  setExecutiveThickness: (val: string) => void;
+  actualThickness: string;
+  setActualThickness: (val: string) => void;
   headResult: number | null;
+  calcPressure: number | null;
   calculateHead: () => void;
 }
 
@@ -33,7 +40,14 @@ export default function HeadCalculator({
   setHeadMaterial,
   headType,
   setHeadType,
+  corrosionAllowance,
+  setCorrosionAllowance,
+  executiveThickness,
+  setExecutiveThickness,
+  actualThickness,
+  setActualThickness,
   headResult,
+  calcPressure,
   calculateHead
 }: HeadCalculatorProps) {
   return (
@@ -117,6 +131,47 @@ export default function HeadCalculator({
                 </Select>
               </div>
 
+              <Separator />
+
+              <div>
+                <Label htmlFor="headCorrosion" className="font-mono text-xs text-slate-600">Прибавка на коррозию, мм</Label>
+                <Input
+                  id="headCorrosion"
+                  type="number"
+                  step="0.1"
+                  placeholder="Введите прибавку"
+                  value={corrosionAllowance}
+                  onChange={(e) => setCorrosionAllowance(e.target.value)}
+                  className="mt-1.5 font-mono"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="headExecutive" className="font-mono text-xs text-slate-600">Исполнительная толщина, мм</Label>
+                <Input
+                  id="headExecutive"
+                  type="number"
+                  step="0.1"
+                  placeholder="По чертежу"
+                  value={executiveThickness}
+                  onChange={(e) => setExecutiveThickness(e.target.value)}
+                  className="mt-1.5 font-mono"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="headActual" className="font-mono text-xs text-slate-600">Фактическая толщина, мм</Label>
+                <Input
+                  id="headActual"
+                  type="number"
+                  step="0.1"
+                  placeholder="Замеренная"
+                  value={actualThickness}
+                  onChange={(e) => setActualThickness(e.target.value)}
+                  className="mt-1.5 font-mono"
+                />
+              </div>
+
               <Button onClick={calculateHead} className="w-full bg-blue-600 hover:bg-blue-700" size="lg">
                 <Icon name="Play" size={18} className="mr-2" />
                 Рассчитать
@@ -150,17 +205,46 @@ export default function HeadCalculator({
                         </span>
                       </div>
                       <div className="flex justify-between font-mono">
-                        <span className="text-slate-600">Диаметр:</span>
+                        <span className="text-slate-600">Внутренний диаметр:</span>
                         <span className="font-semibold">{headDiameter} мм</span>
                       </div>
                       <div className="flex justify-between font-mono">
-                        <span className="text-slate-600">Давление:</span>
+                        <span className="text-slate-600">Рабочее давление:</span>
                         <span className="font-semibold">{headPressure} МПа</span>
                       </div>
                       <div className="flex justify-between font-mono">
-                        <span className="text-slate-600">Материал:</span>
+                        <span className="text-slate-600">Расчётное давление:</span>
+                        <span className="font-semibold text-blue-600">{calcPressure?.toFixed(2)} МПа</span>
+                      </div>
+                      <div className="flex justify-between font-mono">
+                        <span className="text-slate-600">Марка стали:</span>
                         <span className="font-semibold">{headMaterial}</span>
                       </div>
+                    </div>
+
+                    <Separator />
+
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between font-mono">
+                        <span className="text-slate-600">Расчётная толщина:</span>
+                        <span className="font-semibold text-blue-600">{headResult.toFixed(1)} мм</span>
+                      </div>
+                      <div className="flex justify-between font-mono">
+                        <span className="text-slate-600">Прибавка на коррозию:</span>
+                        <span className="font-semibold">{corrosionAllowance || '-'} мм</span>
+                      </div>
+                      {executiveThickness && (
+                        <div className="flex justify-between font-mono">
+                          <span className="text-slate-600">Исполнительная толщина:</span>
+                          <span className="font-semibold">{executiveThickness} мм</span>
+                        </div>
+                      )}
+                      {actualThickness && (
+                        <div className="flex justify-between font-mono">
+                          <span className="text-slate-600">Фактическая толщина:</span>
+                          <span className="font-semibold">{actualThickness} мм</span>
+                        </div>
+                      )}
                     </div>
 
                     <Separator />
@@ -179,9 +263,9 @@ export default function HeadCalculator({
                       <div className="flex items-start gap-2">
                         <Icon name="Info" size={18} className="text-amber-600 mt-0.5" />
                         <div className="text-xs text-amber-800">
-                          <strong>Примечания:</strong>
+                          <strong>По РД 03-421-01:</strong>
                           <ul className="mt-1 space-y-1 ml-2">
-                            <li>• Добавьте прибавку на коррозию (1-3 мм)</li>
+                            <li>• Округлите расчётную толщину до стандартной</li>
                             <li>• Для эллиптических: H = 0.25 × D</li>
                             <li>• Для торосферических: R = D, r = 0.1 × D</li>
                           </ul>
