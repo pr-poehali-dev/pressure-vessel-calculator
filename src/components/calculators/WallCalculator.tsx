@@ -574,17 +574,59 @@ export default function WallCalculator({
           </div>
 
           <div style={{ marginBottom: '30px' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '15px' }}>РАСЧЕТНЫЕ ФОРМУЛЫ</h3>
+            <div style={{ backgroundColor: '#f8f9fa', padding: '15px', borderRadius: '5px', marginBottom: '15px' }}>
+              <p style={{ fontSize: '12px', marginBottom: '10px', fontWeight: 'bold' }}>1. Расчетная толщина стенки обечайки:</p>
+              <p style={{ fontSize: '14px', fontFamily: 'monospace', marginBottom: '5px' }}>s = (Pр × D) / (2 × [σ] × φ - Pр)</p>
+              <p style={{ fontSize: '11px', color: '#666', marginBottom: '3px' }}>где:</p>
+              <p style={{ fontSize: '11px', color: '#666' }}>s - расчетная толщина стенки, мм</p>
+              <p style={{ fontSize: '11px', color: '#666' }}>Pр - расчетное давление, МПа</p>
+              <p style={{ fontSize: '11px', color: '#666' }}>D - внутренний диаметр, мм</p>
+              <p style={{ fontSize: '11px', color: '#666' }}>[σ] - допускаемое напряжение при расчетной температуре, МПа</p>
+              <p style={{ fontSize: '11px', color: '#666' }}>φ - коэффициент прочности сварного шва</p>
+            </div>
+            {allowablePressure !== null && (
+              <div style={{ backgroundColor: '#f8f9fa', padding: '15px', borderRadius: '5px', marginBottom: '15px' }}>
+                <p style={{ fontSize: '12px', marginBottom: '10px', fontWeight: 'bold' }}>2. Допускаемое внутреннее избыточное давление:</p>
+                <p style={{ fontSize: '14px', fontFamily: 'monospace', marginBottom: '5px' }}>[P] = (2 × [σ]₂₀ × φ × s) / (D + s)</p>
+                <p style={{ fontSize: '11px', color: '#666', marginBottom: '3px' }}>где:</p>
+                <p style={{ fontSize: '11px', color: '#666' }}>[P] - допускаемое давление, МПа</p>
+                <p style={{ fontSize: '11px', color: '#666' }}>[σ]₂₀ - допускаемое напряжение при 20°C, МПа</p>
+                <p style={{ fontSize: '11px', color: '#666' }}>s - исполнительная толщина стенки, мм</p>
+                <p style={{ fontSize: '11px', color: '#666' }}>D - внутренний диаметр, мм</p>
+                <p style={{ fontSize: '11px', color: '#666' }}>φ - коэффициент прочности сварного шва</p>
+              </div>
+            )}
+          </div>
+
+          <div style={{ marginBottom: '30px' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '15px' }}>ДОПУСКАЕМЫЕ НАПРЯЖЕНИЯ</h3>
+            <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '15px' }}>
+              <tbody>
+                {allowableStress20 !== null && (
+                  <tr style={{ borderBottom: '1px solid #ddd' }}>
+                    <td style={{ padding: '8px' }}>Допускаемое напряжение при 20°C ([σ]₂₀):</td>
+                    <td style={{ padding: '8px', fontWeight: 'bold', color: '#2563EB' }}>{allowableStress20.toFixed(1)} МПа</td>
+                  </tr>
+                )}
+                {material && temperature && (
+                  <tr style={{ borderBottom: '1px solid #ddd' }}>
+                    <td style={{ padding: '8px' }}>Допускаемое напряжение при {temperature}°C ([σ]):</td>
+                    <td style={{ padding: '8px', fontWeight: 'bold', color: '#2563EB' }}>
+                      {getAllowableStress(material, parseFloat(temperature)).toFixed(1)} МПа
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          <div style={{ marginBottom: '30px' }}>
             <h3 style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '15px' }}>РЕЗУЛЬТАТЫ РАСЧЕТА</h3>
             <div style={{ marginBottom: '15px' }}>
               <p style={{ fontSize: '14px', marginBottom: '5px' }}>Расчетная толщина стенки:</p>
               <p style={{ fontSize: '32px', fontWeight: 'bold', color: '#2563EB' }}>{result.toFixed(1)} мм</p>
             </div>
-            {allowableStress20 !== null && (
-              <div style={{ marginBottom: '15px' }}>
-                <p style={{ fontSize: '14px', marginBottom: '5px' }}>Допускаемое напряжение при 20°C:</p>
-                <p style={{ fontSize: '20px', fontWeight: 'bold' }}>{allowableStress20.toFixed(1)} МПа</p>
-              </div>
-            )}
             {allowablePressure !== null && (
               <div style={{ marginBottom: '15px' }}>
                 <p style={{ fontSize: '14px', marginBottom: '5px' }}>Допускаемое внутреннее избыточное давление:</p>
