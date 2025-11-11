@@ -52,7 +52,7 @@ export default function AdvancedCorrosionCalculator({
           Расширенный расчет с трендом
         </CardTitle>
         <CardDescription>
-          По РД 03-421-01 (п. 5.2) - метод множественных замеров с прогнозированием
+          Приказ Ростехнадзора №536 от 15.12.2020 - метод множественных замеров с прогнозированием
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
