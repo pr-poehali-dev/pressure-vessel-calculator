@@ -4,6 +4,7 @@ import html2canvas from 'html2canvas';
 import SimpleCorrosionCalculator from './corrosion/SimpleCorrosionCalculator';
 import AdvancedCorrosionCalculator, { Measurement } from './corrosion/AdvancedCorrosionCalculator';
 import CorrosionResultsDisplay, { CorrosionResult } from './corrosion/CorrosionResultsDisplay';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 export default function CorrosionRateCalculator() {
   const [initialThickness, setInitialThickness] = useState('');
@@ -499,7 +500,56 @@ export default function CorrosionRateCalculator() {
                 <h3 style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '12px' }}>
                   ГРАФИК ИЗМЕНЕНИЯ ТОЛЩИНЫ
                 </h3>
-                <div ref={chartRef} />
+                <div style={{ width: '100%', height: '300px', backgroundColor: '#f8fafc', padding: '12px', borderRadius: '8px' }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                      <XAxis 
+                        dataKey="year" 
+                        label={{ value: 'Срок эксплуатации (лет)', position: 'insideBottom', offset: -5 }}
+                        stroke="#64748b"
+                      />
+                      <YAxis 
+                        label={{ value: 'Толщина (мм)', angle: -90, position: 'insideLeft' }}
+                        stroke="#64748b"
+                      />
+                      <Tooltip 
+                        contentStyle={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px' }}
+                        formatter={(value: number) => `${value.toFixed(2)} мм`}
+                      />
+                      <Legend />
+                      <Line 
+                        type="monotone" 
+                        dataKey="actual" 
+                        stroke="#3b82f6" 
+                        strokeWidth={2}
+                        dot={{ fill: '#3b82f6', r: 5 }}
+                        name="Фактические измерения"
+                        connectNulls={false}
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="predicted" 
+                        stroke="#f97316" 
+                        strokeWidth={2}
+                        strokeDasharray="5 5"
+                        dot={{ fill: '#f97316', r: 4 }}
+                        name="Прогноз"
+                        connectNulls={false}
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="rejection" 
+                        stroke="#ef4444" 
+                        strokeWidth={2}
+                        strokeDasharray="3 3"
+                        dot={false}
+                        name="Отбраковочная толщина"
+                        connectNulls={true}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
 
               {/* Рекомендации */}
